@@ -9,7 +9,7 @@
 #   Line 3: AI          — ✦ model · context bar pct · used/max · @ tenancy(conditional)
 #   Line 4: Resources   — $ cost · 5h bar pct (reset) · Week bar pct (reset) · ❯ vim mode
 #
-# Dependencies: jq, git, awk, date, tr
+# Dependencies: jq, git, date, stat, coreutils
 # ============================================================================
 
 set -uo pipefail
@@ -44,8 +44,8 @@ elif command -v gtimeout >/dev/null 2>&1; then _TO=gtimeout
 else                                           _TO=""
 fi
 git_safe() {
-    if [ -n "$_TO" ]; then "$_TO" "${GIT_TIMEOUT}s" git "$@"
-    else                   git "$@"
+    if [ -n "$_TO" ]; then LC_ALL=C "$_TO" "${GIT_TIMEOUT}s" git "$@"
+    else                   LC_ALL=C git "$@"
     fi
 }
 
@@ -165,7 +165,7 @@ render_line1() {
 # Line 2 — ⌥ worktree? · ⎇ branch · ✓/± status
 # Cached 5s per CWD to avoid repeated git forks during heavy render cadence.
 # ----------------------------------
-_CACHE_DIR="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/claude-code-statusline-$UID"
+_CACHE_DIR="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/claude-code-statusline-${UID:-$(id -u)}"
 _CACHE_TTL=5
 
 _render_line2_compute() {
@@ -175,8 +175,10 @@ _render_line2_compute() {
     fi
 
     local branch
-    branch=$(git_safe -C "$CWD" branch --show-current 2>/dev/null || true)
-    [ -z "$branch" ] && branch="detached"
+    branch=$(git_safe -C "$CWD" symbolic-ref --short HEAD 2>/dev/null \
+          || git_safe -C "$CWD" rev-parse --abbrev-ref HEAD 2>/dev/null \
+          || echo "")
+    { [ -z "$branch" ] || [ "$branch" = "HEAD" ]; } && branch="detached"
 
     # Worktree — CC populates .workspace.git_worktree (WT_NAME) when cwd is
     # inside a linked worktree. Fall back to git-dir path matching for
@@ -224,7 +226,8 @@ render_line2() {
     # Cache hit: file exists and age < TTL
     if [ -f "$cache_file" ]; then
         local mtime now
-        mtime=$(stat -f %m "$cache_file" 2>/dev/null || stat -c %Y "$cache_file" 2>/dev/null || echo 0)
+        mtime=$(stat -c %Y "$cache_file" 2>/dev/null || stat -f %m "$cache_file" 2>/dev/null || echo 0)
+        [[ "$mtime" =~ ^[0-9]+$ ]] || mtime=0
         now=$(date +%s)
         if (( now - mtime < _CACHE_TTL )); then
             cat "$cache_file"

@@ -132,13 +132,14 @@ jq_out=$(jq -r '[
     (.rate_limits.seven_day.used_percentage | if . == null then "" else floor end),
     (.rate_limits.seven_day.resets_at // ""),
     (.vim.mode // ""),
-    (.workspace.git_worktree // "")
+    (.workspace.git_worktree // ""),
+    (.effort.level // "")
 ] | map(tostring) | join("\u001f")' <<<"$INPUT" 2>/dev/null) \
-    || jq_out=$'Claude\x1f.\x1f0\x1f200000\x1f0\x1f0\x1f\x1f\x1f\x1f\x1f\x1f'
+    || jq_out=$'Claude\x1f.\x1f0\x1f200000\x1f0\x1f0\x1f\x1f\x1f\x1f\x1f\x1f\x1f'
 
 IFS=$'\x1f' read -r \
     MODEL CWD CTX_USED CTX_MAX CTX_PCT COST \
-    FIVE_RESET FIVE_PCT WEEK_PCT WEEK_RESET VIM_MODE WT_NAME <<<"$jq_out"
+    FIVE_RESET FIVE_PCT WEEK_PCT WEEK_RESET VIM_MODE WT_NAME EFFORT <<<"$jq_out"
 
 # ----------------------------------
 # Line 1 — cwd (dim parent path + bold basename; "~" expansion)
@@ -311,8 +312,14 @@ render_line3() {
         suffix="${SEP}${t}"
     fi
 
-    printf '✦ %s%s%s%s%s  %s%s%3d%%%s%s %s·%s %s%s / %s%s%s' \
-        "$FG_PINK" "$MODEL" "$RESET" "$SEP" \
+    # effort.level is only sent for models that support reasoning effort.
+    local effort_seg=""
+    if [ -n "$EFFORT" ]; then
+        effort_seg=" ${FG_MUTED}(${EFFORT})${RESET}"
+    fi
+
+    printf '✦ %s%s%s%s%s%s  %s%s%3d%%%s%s %s·%s %s%s / %s%s%s' \
+        "$FG_PINK" "$MODEL" "$RESET" "$effort_seg" "$SEP" \
         "$bar" \
         "$color" "$BOLD" "$CTX_PCT" "$RESET" "$extra" \
         "$FG_SEP" "$RESET" \

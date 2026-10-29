@@ -301,7 +301,7 @@ function renderLine2(cwd, wtName) {
 // ----------------------------------
 // Line 3 — model · context bar · used/max · tenancy?
 // ----------------------------------
-function renderLine3(model, ctxPct, ctxUsed, ctxMax) {
+function renderLine3(model, effort, ctxPct, ctxUsed, ctxMax) {
     const color = colorByPct(ctxPct);
     const bar = makeBar(ctxPct);
     const extra = ctxPct >= CFG.FIRE_THRESHOLD ? ' !' : '';
@@ -309,8 +309,10 @@ function renderLine3(model, ctxPct, ctxUsed, ctxMax) {
     const maxFmt = formatTokens(ctxMax);
     const t = readTenancy();
     const suffix = t ? `${SEP}${formatTenancy(t)}` : '';
+    // effort.level is only sent for models that support reasoning effort.
+    const effortSeg = effort ? ` ${C.FG_MUTED}(${effort})${C.RESET}` : '';
 
-    return `✦ ${C.FG_PINK}${model}${C.RESET}${SEP}${bar}  ${color}${C.BOLD}${pad3(ctxPct)}%${C.RESET}${extra} ${C.FG_SEP}·${C.RESET} ${C.FG_MUTED}${usedFmt} / ${maxFmt}${C.RESET}${suffix}`;
+    return `✦ ${C.FG_PINK}${model}${C.RESET}${effortSeg}${SEP}${bar}  ${color}${C.BOLD}${pad3(ctxPct)}%${C.RESET}${extra} ${C.FG_SEP}·${C.RESET} ${C.FG_MUTED}${usedFmt} / ${maxFmt}${C.RESET}${suffix}`;
 }
 
 // ----------------------------------
@@ -425,6 +427,7 @@ function extract(data) {
         weekReset:  sd.resets_at ?? '',
         vimMode:    data.vim?.mode ?? '',
         wtName:     data.workspace?.git_worktree ?? '',
+        effort:     data.effort?.level ?? '',
     };
 }
 
@@ -438,7 +441,7 @@ function main() {
     const out =
         renderLine1(f.cwd) + '\n' +
         renderLine2(f.cwd, f.wtName) + '\n' +
-        renderLine3(f.model, f.ctxPct, f.ctxUsed, f.ctxMax) + '\n' +
+        renderLine3(f.model, f.effort, f.ctxPct, f.ctxUsed, f.ctxMax) + '\n' +
         renderLine4(f.cost, f.fivePct, f.fiveReset, f.weekPct, f.weekReset, f.vimMode) + '\n';
 
     process.stdout.write(out);

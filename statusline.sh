@@ -307,9 +307,11 @@ read_tenancy() {
     fields=$(jq -r '[
         .oauthAccount.organizationName // "",
         .oauthAccount.displayName // "",
-        .oauthAccount.emailAddress // ""
+        .oauthAccount.emailAddress // "",
+        .oauthAccount.organizationType // "",
+        (.oauthAccount.seatTier | strings // "")
     ] | @tsv' "$f" 2>/dev/null) || return 1
-    IFS=$'\t' read -r ORG_NAME DISPLAY_NAME EMAIL <<<"$fields"
+    IFS=$'\t' read -r ORG_NAME DISPLAY_NAME EMAIL ORG_TYPE SEAT_TIER <<<"$fields"
     [ -n "$DISPLAY_NAME" ] || [ -n "$EMAIL" ]
 }
 
@@ -317,9 +319,18 @@ format_tenancy() {
     local name="${DISPLAY_NAME:-${EMAIL%@*}}"
     [ -z "$name" ] && return 1
 
-    # Personal: orgName is empty or matches auto-generated pattern
-    # Team: orgName is a custom team name
-    if [ -z "$ORG_NAME" ] || [[ "$ORG_NAME" =~ \'s\ (Individual\ )?Organization$ ]]; then
+    # Newer ~/.claude.json carries organizationType (e.g. claude_max,
+    # claude_team) and seatTier (string only on team/enterprise seats): decide
+    # from those alone. Older files fall back to the auto-generated name pattern.
+    local personal=0
+    if [ -n "$ORG_TYPE" ]; then
+        if [ -z "$SEAT_TIER" ] && ! [[ "$ORG_TYPE" =~ [Tt][Ee][Aa][Mm]|[Ee][Nn][Tt][Ee][Rr][Pp][Rr][Ii][Ss][Ee] ]]; then
+            personal=1
+        fi
+    elif [ -z "$ORG_NAME" ] || [[ "$ORG_NAME" =~ \'s\ (Individual\ )?Organization$ ]]; then
+        personal=1
+    fi
+    if (( personal )); then
         printf '@ %s%s%s' "$FG_LAVENDER" "$name" "$RESET"
     else
         printf '@ %s%s%s %s(%s%s%s%s%s)%s' \

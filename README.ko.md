@@ -106,7 +106,7 @@ curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statuslin
 
 ## 동작 원리
 
-- **계정 정체성**은 `~/.claude.json`의 `oauthAccount`를 직접 읽습니다. CLI 호출을 거치지 않으므로 병렬 세션에서도 흔들리지 않습니다. 자동 생성 조직명은 정규식으로 걸러 개인과 팀을 자동 판별합니다.
+- **계정 정체성**은 `~/.claude.json`의 `oauthAccount`를 직접 읽습니다. CLI 호출을 거치지 않으므로 병렬 세션에서도 흔들리지 않습니다. 개인/팀은 파일에 `organizationType`과 `seatTier`가 있으면 그 값으로 판별하고(Claude Code 2.1.x), 없는 구버전 파일에서는 자동 생성 조직명 패턴으로 판별합니다.
 - **가볍게 동작합니다.** Node 런타임은 `JSON.parse`로 처리하고 `git`만 fork합니다. shell 런타임은 단일 jq 호출과 Unit Separator로 필드를 추출합니다. 두 런타임 모두 CWD별 5초 TTL 파일 캐시로 git 정보를 재사용하므로 30초 갱신마다 `git` fork는 한 번입니다.
 - **누락에 너그럽습니다.** `rate_limits`, `vim.mode`, `~/.claude.json`, `jq` 중 무엇이 없어도 해당 요소만 생략하고 나머지는 그대로 표시합니다.
 
@@ -125,6 +125,7 @@ curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statuslin
 ./tests/integration-worktree.sh         # ⌥ worktree 이름 축약, sh == js 일치
 ./tests/integration-pr-badge.sh         # 2번째 줄 PR / MR 배지, sh == js 일치
 ./tests/integration-narrow.sh           # COLUMNS에 따른 bar 폭 자동 축소, CCSL_BAR_WIDTH 우선
+./tests/integration-tenancy.sh          # @ 개인/팀 판별(organizationType + seatTier), sh == js 일치
 ```
 
 호스트의 git / HOME / 캐시를 건드리지 않도록 임시 디렉토리에 격리되어 실행됩니다.

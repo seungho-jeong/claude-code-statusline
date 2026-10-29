@@ -107,7 +107,7 @@ Example: `CCSL_CTX_WARN=30 claude`
 
 ## How it works
 
-- **Account identity** is read directly from `oauthAccount` in `~/.claude.json`. No CLI call, so it stays stable across parallel sessions. Auto-generated organization names are filtered with a regex to distinguish personal and team accounts automatically.
+- **Account identity** is read directly from `oauthAccount` in `~/.claude.json`. No CLI call, so it stays stable across parallel sessions. Personal vs. team is decided from `organizationType` and `seatTier` when the file has them (Claude Code 2.1.x), falling back to the auto-generated organization-name pattern on older files.
 - **Lightweight by design.** The Node runner uses `JSON.parse` and only forks `git`. The shell runner extracts every field with a single `jq` call using Unit Separator framing. Both share a per-CWD git cache file with a 5-second TTL, so the 30-second refresh costs one `git` fork per tick.
 - **Forgiving of missing data.** If `rate_limits`, `vim.mode`, `~/.claude.json`, or `jq` is absent, only that element is omitted — everything else still renders.
 
@@ -126,6 +126,7 @@ Example: `CCSL_CTX_WARN=30 claude`
 ./tests/integration-worktree.sh         # ⌥ worktree name truncation, sh == js
 ./tests/integration-pr-badge.sh         # PR / MR badge on Line 2, sh == js
 ./tests/integration-narrow.sh           # bar width follows COLUMNS unless CCSL_BAR_WIDTH is set
+./tests/integration-tenancy.sh          # @ personal/team from organizationType + seatTier, sh == js
 ```
 
 Tests run inside an isolated temp directory so your host's git / HOME / cache

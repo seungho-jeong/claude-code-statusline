@@ -181,10 +181,12 @@ function readTenancy() {
         const j = JSON.parse(raw);
         const a = j.oauthAccount || {};
         const orgName = a.organizationName || '';
+        const orgType = a.organizationType || '';
+        const seatTier = typeof a.seatTier === 'string' ? a.seatTier : '';
         const displayName = a.displayName || '';
         const email = a.emailAddress || '';
         if (!displayName && !email) return null;
-        return { orgName, displayName, email };
+        return { orgName, orgType, seatTier, displayName, email };
     } catch {
         return null;
     }
@@ -194,8 +196,16 @@ function formatTenancy(t) {
     if (!t) return '';
     const name = t.displayName || (t.email ? t.email.split('@')[0] : '');
     if (!name) return '';
-    // Personal: orgName empty or auto-generated pattern
-    if (!t.orgName || /'s (Individual )?Organization$/.test(t.orgName)) {
+    // Newer ~/.claude.json carries organizationType (e.g. claude_max,
+    // claude_team) and seatTier (string only on team/enterprise seats): decide
+    // from those alone. Older files fall back to the auto-generated name pattern.
+    let personal;
+    if (t.orgType) {
+        personal = !(t.seatTier || /team|enterprise/i.test(t.orgType));
+    } else {
+        personal = !t.orgName || /'s (Individual )?Organization$/.test(t.orgName);
+    }
+    if (personal) {
         return `@ ${C.FG_LAVENDER}${name}${C.RESET}`;
     }
     return `@ ${C.FG_LAVENDER}${name}${C.RESET} ${C.FG_SEP}(${C.RESET}${C.FG_BLUE}${t.orgName}${C.RESET}${C.FG_SEP})${C.RESET}`;

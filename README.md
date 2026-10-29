@@ -26,7 +26,7 @@ Instead of pausing work for `/usage`, `/context`, or `claude auth status`, just 
 - **`@` account**: `@ Name` for personal, `@ Name (OrgName)` for team — so you never lose track when switching between accounts.
 - **`$` cost**: cumulative for the session. Color shifts at $2 and $5, highlighted with `!` when exceeded.
 - **`Spend` limit**: usage bar, %, dollars spent / limit and time until reset. Shown only for seats behind a spend limit (Claude Code 2.1.251+; dollar figures 2.1.284+).
-- **cwd, `⎇` git, `❯` vim**: working directory, branch with dirty state (plus `⌥` worktree when applicable, names over 24 chars shortened with `…`), vim mode (only while vim mode is on).
+- **cwd, `⎇` git, `❯` vim**: working directory, branch with dirty state (plus `⌥` worktree when applicable, names over 24 chars shortened with `…`, and an open PR badge like `#12 approved`, `!12` for GitLab MRs), vim mode (only while vim mode is on).
 
 ## Install
 
@@ -121,6 +121,7 @@ Example: `CCSL_CTX_WARN=30 claude`
 ./tests/integration-install-backup.sh   # install.sh backs up pre-existing assets
 ./tests/integration-install-settings.sh # install.sh writes the statusLine entry (fresh + merge)
 ./tests/integration-worktree.sh         # ⌥ worktree name truncation, sh == js
+./tests/integration-pr-badge.sh         # PR / MR badge on Line 2, sh == js
 ```
 
 Tests run inside an isolated temp directory so your host's git / HOME / cache

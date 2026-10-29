@@ -139,14 +139,18 @@ jq_out=$(jq -r '[
     (.rate_limits.spend_limit.used_percentage | if . == null then "" else floor end),
     (.rate_limits.spend_limit.resets_at // ""),
     (.rate_limits.spend_limit.used_usd | if . == null then "" else round end),
-    (.rate_limits.spend_limit.limit_usd | if . == null then "" else round end)
+    (.rate_limits.spend_limit.limit_usd | if . == null then "" else round end),
+    (.pr.number // ""),
+    (.pr.review_state // ""),
+    (.pr.kind // "")
 ] | map(tostring) | join("\u001f")' <<<"$INPUT" 2>/dev/null) \
-    || jq_out=$'Claude\x1f.\x1f0\x1f200000\x1f0\x1f0\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f'
+    || jq_out=$'Claude\x1f.\x1f0\x1f200000\x1f0\x1f0\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f'
 
 IFS=$'\x1f' read -r \
     MODEL CWD CTX_USED CTX_MAX CTX_PCT COST \
     FIVE_RESET FIVE_PCT WEEK_PCT WEEK_RESET VIM_MODE WT_NAME EFFORT \
-    CACHE_WARM CACHE_HIT SPEND_PCT SPEND_RESET SPEND_USED SPEND_LIMIT <<<"$jq_out"
+    CACHE_WARM CACHE_HIT SPEND_PCT SPEND_RESET SPEND_USED SPEND_LIMIT \
+    PR_NUMBER PR_STATE PR_KIND <<<"$jq_out"
 
 # ----------------------------------
 # Line 1 — cwd (dim parent path + bold basename; "~" expansion)
@@ -268,6 +272,22 @@ render_line2() {
     if printf '%s' "$out" > "${cache_file}.tmp.$$" 2>/dev/null; then
         mv "${cache_file}.tmp.$$" "$cache_file" 2>/dev/null || rm -f "${cache_file}.tmp.$$" 2>/dev/null
     fi
+}
+
+# PR badge — appended outside the git cache so review-state changes show
+# immediately. CC sends `pr` only inside a repo with an open PR/MR.
+render_pr_badge() {
+    [ -n "$PR_NUMBER" ] || return 0
+    local color prefix="#" state_part=""
+    case "$PR_STATE" in
+        approved)          color="$FG_GREEN" ;;
+        changes_requested) color="$FG_RED" ;;
+        draft|"")          color="$FG_MUTED" ;;
+        *)                 color="$FG_YELLOW" ;;
+    esac
+    [ "$PR_KIND" = "mr" ] && prefix="!"
+    [ -n "$PR_STATE" ] && state_part=" ${PR_STATE}"
+    printf '%s%s%s%s%s%s' "$SEP" "$color" "$prefix" "$PR_NUMBER" "$state_part" "$RESET"
 }
 
 # ----------------------------------
@@ -476,6 +496,6 @@ render_line4() {
 # Output
 # ----------------------------------
 render_line1; printf '\n'
-render_line2; printf '\n'
+render_line2; render_pr_badge; printf '\n'
 render_line3; printf '\n'
 render_line4; printf '\n'

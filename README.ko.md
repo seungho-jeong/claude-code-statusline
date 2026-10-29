@@ -26,7 +26,7 @@
 - **`@` 계정**: 개인은 `@ Name`, 팀은 `@ Name (OrgName)`으로 표시해 여러 계정을 오갈 때 헷갈리지 않습니다.
 - **`$` 비용**: 세션 누적. $2와 $5에서 색이 바뀌고 초과 시 `!`로 강조합니다.
 - **`Spend` 한도**: 사용률 bar, %, 사용/한도 금액과 리셋까지 남은 시간. 지출 한도가 걸린 계정에서만 표시됩니다(Claude Code 2.1.251+, 금액은 2.1.284+).
-- **cwd, `⎇` git, `❯` vim**: 작업 위치, 브랜치와 더티 상태 (`⌥` worktree 포함, 24자 초과 이름은 `…`로 축약), vim 모드(vim 모드가 켜진 동안만).
+- **cwd, `⎇` git, `❯` vim**: 작업 위치, 브랜치와 더티 상태 (`⌥` worktree 포함, 24자 초과 이름은 `…`로 축약, 열린 PR은 `#12 approved`처럼 배지로, GitLab MR은 `!12`), vim 모드(vim 모드가 켜진 동안만).
 
 ## 설치
 
@@ -120,6 +120,7 @@ curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statuslin
 ./tests/integration-install-backup.sh   # install.sh가 기존 자산을 백업하는지 검증
 ./tests/integration-install-settings.sh # install.sh가 statusLine 항목을 기록하는지 검증 (신규 + 병합)
 ./tests/integration-worktree.sh         # ⌥ worktree 이름 축약, sh == js 일치
+./tests/integration-pr-badge.sh         # 2번째 줄 PR / MR 배지, sh == js 일치
 ```
 
 호스트의 git / HOME / 캐시를 건드리지 않도록 임시 디렉토리에 격리되어 실행됩니다.

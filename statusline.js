@@ -298,6 +298,18 @@ function renderLine2(cwd, wtName) {
     return out;
 }
 
+// PR badge — appended outside the git cache so review-state changes show
+// immediately. CC sends `pr` only inside a repo with an open PR/MR.
+function prBadge(number, state, kind) {
+    if (number === '' || number === null || number === undefined) return '';
+    const colors = {
+        approved: C.FG_GREEN, changes_requested: C.FG_RED, draft: C.FG_MUTED, '': C.FG_MUTED,
+    };
+    const color = colors[state] ?? C.FG_YELLOW;
+    const prefix = kind === 'mr' ? '!' : '#';
+    return `${SEP}${color}${prefix}${number}${state ? ` ${state}` : ''}${C.RESET}`;
+}
+
 // ----------------------------------
 // Line 3 — model · context bar · used/max · tenancy?
 // ----------------------------------
@@ -455,6 +467,9 @@ function extract(data) {
         spendReset: sl.resets_at ?? '',
         spendUsed:  sl.used_usd ?? '',
         spendLimit: sl.limit_usd ?? '',
+        prNumber:   data.pr?.number ?? '',
+        prState:    data.pr?.review_state ?? '',
+        prKind:     data.pr?.kind ?? '',
         vimMode:    data.vim?.mode ?? '',
         wtName:     data.workspace?.git_worktree ?? '',
         effort:     data.effort?.level ?? '',
@@ -472,7 +487,7 @@ function main() {
 
     const out =
         renderLine1(f.cwd) + '\n' +
-        renderLine2(f.cwd, f.wtName) + '\n' +
+        renderLine2(f.cwd, f.wtName) + prBadge(f.prNumber, f.prState, f.prKind) + '\n' +
         renderLine3(f.model, f.effort, f.ctxPct, f.ctxUsed, f.ctxMax, f.cacheWarm, f.cacheHit) + '\n' +
         renderLine4(f.cost, f.spendPct, f.spendReset, f.spendUsed, f.spendLimit,
                     f.fivePct, f.fiveReset, f.weekPct, f.weekReset, f.vimMode) + '\n';

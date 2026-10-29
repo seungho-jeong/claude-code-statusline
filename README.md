@@ -9,11 +9,11 @@ Instead of pausing work for `/usage`, `/context`, or `claude auth status`, just 
 
 ## Preview
 
-**Personal account**
+**Personal account (cost warning)**
 
 ![Personal account rendering](docs/images/personal.png)
 
-**Team account (with warnings)**
+**Team account (inside a linked worktree)**
 
 ![Team account rendering](docs/images/team.png)
 

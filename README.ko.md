@@ -9,11 +9,11 @@
 
 ## 미리보기
 
-**개인 계정**
+**개인 계정 (비용 경고)**
 
 ![개인 계정 렌더링](docs/images/personal.png)
 
-**팀 계정 (경고 포함)**
+**팀 계정 (linked worktree 안)**
 
 ![팀 계정 렌더링](docs/images/team.png)
 

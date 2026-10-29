@@ -133,13 +133,16 @@ jq_out=$(jq -r '[
     (.rate_limits.seven_day.resets_at // ""),
     (.vim.mode // ""),
     (.workspace.git_worktree // ""),
-    (.effort.level // "")
+    (.effort.level // ""),
+    (.prompt_cache.warm | if . == null then "" else tostring end),
+    (.prompt_cache.hit_ratio | if . == null then "" else (. * 100 | floor) end)
 ] | map(tostring) | join("\u001f")' <<<"$INPUT" 2>/dev/null) \
-    || jq_out=$'Claude\x1f.\x1f0\x1f200000\x1f0\x1f0\x1f\x1f\x1f\x1f\x1f\x1f\x1f'
+    || jq_out=$'Claude\x1f.\x1f0\x1f200000\x1f0\x1f0\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f'
 
 IFS=$'\x1f' read -r \
     MODEL CWD CTX_USED CTX_MAX CTX_PCT COST \
-    FIVE_RESET FIVE_PCT WEEK_PCT WEEK_RESET VIM_MODE WT_NAME EFFORT <<<"$jq_out"
+    FIVE_RESET FIVE_PCT WEEK_PCT WEEK_RESET VIM_MODE WT_NAME EFFORT \
+    CACHE_WARM CACHE_HIT <<<"$jq_out"
 
 # ----------------------------------
 # Line 1 — cwd (dim parent path + bold basename; "~" expansion)
@@ -318,13 +321,25 @@ render_line3() {
         effort_seg=" ${FG_MUTED}(${EFFORT})${RESET}"
     fi
 
-    printf '✦ %s%s%s%s%s%s  %s%s%3d%%%s%s %s·%s %s%s / %s%s%s' \
+    # prompt_cache appears after the first API response; hit_ratio stays
+    # empty while token counts are zero.
+    local cache_seg=""
+    if [ -n "$CACHE_WARM" ]; then
+        local cache_color cache_state cache_pct=""
+        if [ "$CACHE_WARM" = "true" ]; then cache_color="$FG_GREEN"; cache_state="warm"
+        else                                cache_color="$FG_MUTED"; cache_state="cold"
+        fi
+        [ -n "$CACHE_HIT" ] && cache_pct=" ${CACHE_HIT}%"
+        cache_seg="${SEP}⚡ ${cache_color}${cache_state}${cache_pct}${RESET}"
+    fi
+
+    printf '✦ %s%s%s%s%s%s  %s%s%3d%%%s%s %s·%s %s%s / %s%s%s%s' \
         "$FG_PINK" "$MODEL" "$RESET" "$effort_seg" "$SEP" \
         "$bar" \
         "$color" "$BOLD" "$CTX_PCT" "$RESET" "$extra" \
         "$FG_SEP" "$RESET" \
         "$FG_MUTED" "$used_fmt" "$max_fmt" "$RESET" \
-        "$suffix"
+        "$cache_seg" "$suffix"
 }
 
 # ----------------------------------

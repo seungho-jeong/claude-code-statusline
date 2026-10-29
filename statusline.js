@@ -301,7 +301,7 @@ function renderLine2(cwd, wtName) {
 // ----------------------------------
 // Line 3 — model · context bar · used/max · tenancy?
 // ----------------------------------
-function renderLine3(model, effort, ctxPct, ctxUsed, ctxMax) {
+function renderLine3(model, effort, ctxPct, ctxUsed, ctxMax, cacheWarm, cacheHit) {
     const color = colorByPct(ctxPct);
     const bar = makeBar(ctxPct);
     const extra = ctxPct >= CFG.FIRE_THRESHOLD ? ' !' : '';
@@ -311,8 +311,16 @@ function renderLine3(model, effort, ctxPct, ctxUsed, ctxMax) {
     const suffix = t ? `${SEP}${formatTenancy(t)}` : '';
     // effort.level is only sent for models that support reasoning effort.
     const effortSeg = effort ? ` ${C.FG_MUTED}(${effort})${C.RESET}` : '';
+    // prompt_cache appears after the first API response; hit_ratio stays
+    // null while token counts are zero.
+    let cacheSeg = '';
+    if (cacheWarm !== null && cacheWarm !== undefined) {
+        const cacheColor = cacheWarm ? C.FG_GREEN : C.FG_MUTED;
+        const pct = Number.isFinite(cacheHit) ? ` ${Math.floor(cacheHit * 100)}%` : '';
+        cacheSeg = `${SEP}⚡ ${cacheColor}${cacheWarm ? 'warm' : 'cold'}${pct}${C.RESET}`;
+    }
 
-    return `✦ ${C.FG_PINK}${model}${C.RESET}${effortSeg}${SEP}${bar}  ${color}${C.BOLD}${pad3(ctxPct)}%${C.RESET}${extra} ${C.FG_SEP}·${C.RESET} ${C.FG_MUTED}${usedFmt} / ${maxFmt}${C.RESET}${suffix}`;
+    return `✦ ${C.FG_PINK}${model}${C.RESET}${effortSeg}${SEP}${bar}  ${color}${C.BOLD}${pad3(ctxPct)}%${C.RESET}${extra} ${C.FG_SEP}·${C.RESET} ${C.FG_MUTED}${usedFmt} / ${maxFmt}${C.RESET}${cacheSeg}${suffix}`;
 }
 
 // ----------------------------------
@@ -428,6 +436,8 @@ function extract(data) {
         vimMode:    data.vim?.mode ?? '',
         wtName:     data.workspace?.git_worktree ?? '',
         effort:     data.effort?.level ?? '',
+        cacheWarm:  data.prompt_cache?.warm ?? null,       // true/false, null → segment omitted
+        cacheHit:   data.prompt_cache?.hit_ratio ?? null,  // 0..1, null → % omitted
     };
 }
 
@@ -441,7 +451,7 @@ function main() {
     const out =
         renderLine1(f.cwd) + '\n' +
         renderLine2(f.cwd, f.wtName) + '\n' +
-        renderLine3(f.model, f.effort, f.ctxPct, f.ctxUsed, f.ctxMax) + '\n' +
+        renderLine3(f.model, f.effort, f.ctxPct, f.ctxUsed, f.ctxMax, f.cacheWarm, f.cacheHit) + '\n' +
         renderLine4(f.cost, f.fivePct, f.fiveReset, f.weekPct, f.weekReset, f.vimMode) + '\n';
 
     process.stdout.write(out);

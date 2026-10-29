@@ -22,6 +22,7 @@ Instead of pausing work for `/usage`, `/context`, or `claude auth status`, just 
 - **`5h` limit**: usage bar, %, and time until reset. Highlights with `!` when under 15 minutes.
 - **`Week` limit**: usage bar, %, and time until reset (shown in days/hours).
 - **`✦` context**: model name (with the reasoning effort level in parentheses when the model reports one), bar, %, token count (input tokens incl. cache, matching Claude Code's own `used_percentage`). Color shifts at 50% and 80%, `!` above 90%. Abbreviates to `1.2M` past 1M tokens.
+- **`⚡` cache**: prompt-cache state (`warm` / `cold`) and hit ratio, once Claude Code reports it.
 - **`@` account**: `@ Name` for personal, `@ Name (OrgName)` for team — so you never lose track when switching between accounts.
 - **`$` cost**: cumulative for the session. Color shifts at $2 and $5, highlighted with `!` when exceeded.
 - **cwd, `⎇` git, `❯` vim**: working directory, branch with dirty state (plus `⌥` worktree when applicable, names over 24 chars shortened with `…`), vim mode (only while vim mode is on).

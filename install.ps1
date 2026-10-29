@@ -103,7 +103,6 @@ $line = [PSCustomObject]@{
     type                 = "command"
     command              = $Cmd
     padding              = 0
-    hideVimModeIndicator = $true
     refreshInterval      = 30
 }
 

@@ -7,7 +7,7 @@
 #   Line 1: Filesystem  — cwd (dim prefix + bold basename)
 #   Line 2: Git         — ⌥ worktree(conditional) · ⎇ branch · ✓/± status
 #   Line 3: AI          — ✦ model · context bar pct · used/max · @ tenancy(conditional)
-#   Line 4: Resources   — $ cost · 5h bar pct (reset) · Week bar pct (reset) · ❯ vim mode
+#   Line 4: Resources   — $ cost · Spend?(bar pct) · 5h bar pct (reset) · Week bar pct (reset)
 #
 # Dependencies: jq, git, date, stat, coreutils
 # ============================================================================
@@ -138,7 +138,6 @@ jq_out=$(jq -r '[
     (.rate_limits.five_hour.used_percentage | if . == null then "" else floor end),
     (.rate_limits.seven_day.used_percentage | if . == null then "" else floor end),
     (.rate_limits.seven_day.resets_at // ""),
-    (.vim.mode // ""),
     (.workspace.git_worktree // ""),
     (.effort.level // ""),
     (.prompt_cache.warm | if . == null then "" else tostring end),
@@ -151,11 +150,11 @@ jq_out=$(jq -r '[
     (.pr.review_state // ""),
     (.pr.kind // "")
 ] | map(tostring) | join("\u001f")' <<<"$INPUT" 2>/dev/null) \
-    || jq_out=$'Claude\x1f.\x1f0\x1f200000\x1f0\x1f0\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f'
+    || jq_out=$'Claude\x1f.\x1f0\x1f200000\x1f0\x1f0\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f'
 
 IFS=$'\x1f' read -r \
     MODEL CWD CTX_USED CTX_MAX CTX_PCT COST \
-    FIVE_RESET FIVE_PCT WEEK_PCT WEEK_RESET VIM_MODE WT_NAME EFFORT \
+    FIVE_RESET FIVE_PCT WEEK_PCT WEEK_RESET WT_NAME EFFORT \
     CACHE_WARM CACHE_HIT SPEND_PCT SPEND_RESET SPEND_USED SPEND_LIMIT \
     PR_NUMBER PR_STATE PR_KIND <<<"$jq_out"
 
@@ -385,7 +384,7 @@ render_line3() {
 }
 
 # ----------------------------------
-# Line 4 — $ cost · 5h bar+pct (reset) · Week bar+pct (reset) · ❯ vim mode
+# Line 4 — $ cost · Spend?(bar+pct) · 5h bar+pct (reset) · Week bar+pct (reset)
 # ----------------------------------
 _to_cents() {
     # Convert "$1" (float-ish string like "1.34", "5", "0.5") to integer cents
@@ -498,16 +497,10 @@ render_line4() {
             "$FG_SEP" "$FG_MUTED" "$week_remain_str" "$RESET" "$FG_SEP" "$RESET")
     fi
 
-    # CC omits `vim` entirely when vim mode is off; drop the segment then.
-    local vim_seg=""
-    if [ -n "$VIM_MODE" ]; then
-        vim_seg=$(printf '%s❯  %s%s%s' "$SEP" "$FG_MUTED" "$VIM_MODE" "$RESET")
-    fi
-
-    printf '%s%s%s5h %s  %s%s%s%s%sWeek %s  %s%s%s%s%s' \
+    printf '%s%s%s5h %s  %s%s%s%s%sWeek %s  %s%s%s%s' \
         "$cost_part" "$spend_seg" "$SEP" \
         "$five_bar" "$five_color" "$five_pct_str" "$RESET" "$five_remain_seg" "$SEP" \
-        "$week_bar" "$week_color" "$week_pct_str" "$RESET" "$week_remain_seg" "$vim_seg"
+        "$week_bar" "$week_color" "$week_pct_str" "$RESET" "$week_remain_seg"
 }
 
 # ----------------------------------

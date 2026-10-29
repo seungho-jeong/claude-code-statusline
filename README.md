@@ -26,7 +26,7 @@ Instead of pausing work for `/usage`, `/context`, or `claude auth status`, just 
 - **`@` account**: `@ Name` for personal, `@ Name (OrgName)` for team — so you never lose track when switching between accounts.
 - **`$` cost**: cumulative for the session. Color shifts at $2 and $5, highlighted with `!` when exceeded.
 - **`Spend` limit**: usage bar, %, dollars spent / limit and time until reset. Shown only for seats behind a spend limit (Claude Code 2.1.251+; dollar figures 2.1.284+).
-- **cwd, `⎇` git, `❯` vim**: working directory, branch with dirty state (plus `⌥` worktree when applicable, names over 24 chars shortened with `…`, and an open PR badge like `#12 approved`, `!12` for GitLab MRs), vim mode (only while vim mode is on).
+- **cwd, `⎇` git**: working directory, branch with dirty state (plus `⌥` worktree when applicable, names over 24 chars shortened with `…`, and an open PR badge like `#12 approved`, `!12` for GitLab MRs). Vim mode is left to Claude Code's own `-- INSERT --` indicator.
 
 ## Install
 
@@ -62,14 +62,11 @@ Place `statusline.js` at `~/.claude/statusline.js` (or
     "type": "command",
     "command": "node ~/.claude/statusline.js",
     "padding": 0,
-    "hideVimModeIndicator": true,
     "refreshInterval": 30
   }
 }
 ```
 
-`hideVimModeIndicator` turns off Claude Code's built-in `-- INSERT --` text,
-which would otherwise duplicate the `❯` segment.
 `refreshInterval` re-runs the script every 30 seconds so the `5h` countdown
 keeps ticking between messages.
 
@@ -109,7 +106,7 @@ Example: `CCSL_CTX_WARN=30 claude`
 
 - **Account identity** is read directly from `oauthAccount` in `~/.claude.json`. No CLI call, so it stays stable across parallel sessions. Personal vs. team is decided from `organizationType` and `seatTier` when the file has them (Claude Code 2.1.x), falling back to the auto-generated organization-name pattern on older files.
 - **Lightweight by design.** The Node runner uses `JSON.parse` and only forks `git`. The shell runner extracts every field with a single `jq` call using Unit Separator framing. Both share a per-CWD git cache file with a 5-second TTL, so the 30-second refresh costs one `git` fork per tick.
-- **Forgiving of missing data.** If `rate_limits`, `vim.mode`, `~/.claude.json`, or `jq` is absent, only that element is omitted — everything else still renders.
+- **Forgiving of missing data.** If `rate_limits`, `~/.claude.json`, or `jq` is absent, only that element is omitted — everything else still renders.
 
 ## Tests
 

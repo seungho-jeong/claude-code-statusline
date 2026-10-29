@@ -12,8 +12,8 @@ command -v jq >/dev/null 2>&1 || { printf 'SKIP: jq not installed\n'; exit 0; }
 fails=0
 check() {
     local label="$1" settings="$2"
-    if ! jq -e '.statusLine.hideVimModeIndicator == true' "$settings" >/dev/null 2>&1; then
-        printf 'FAIL [%s]: statusLine.hideVimModeIndicator is not true\n' "$label" >&2
+    if ! jq -e '.statusLine | has("hideVimModeIndicator") | not' "$settings" >/dev/null 2>&1; then
+        printf 'FAIL [%s]: statusLine.hideVimModeIndicator must not be set\n' "$label" >&2
         fails=$((fails + 1))
     fi
     if ! jq -e '.statusLine.command | strings | length > 0' "$settings" >/dev/null 2>&1; then
@@ -46,4 +46,4 @@ rm -rf "$TMPHOME1" "$TMPHOME2"
 if [ "$fails" -ne 0 ]; then
     exit 1
 fi
-printf 'PASS: install.sh writes statusLine with hideVimModeIndicator + refreshInterval (fresh + merge)\n'
+printf 'PASS: install.sh writes statusLine with refreshInterval (fresh + merge)\n'

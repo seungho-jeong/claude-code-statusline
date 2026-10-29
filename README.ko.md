@@ -26,7 +26,7 @@
 - **`@` 계정**: 개인은 `@ Name`, 팀은 `@ Name (OrgName)`으로 표시해 여러 계정을 오갈 때 헷갈리지 않습니다.
 - **`$` 비용**: 세션 누적. $2와 $5에서 색이 바뀌고 초과 시 `!`로 강조합니다.
 - **`Spend` 한도**: 사용률 bar, %, 사용/한도 금액과 리셋까지 남은 시간. 지출 한도가 걸린 계정에서만 표시됩니다(Claude Code 2.1.251+, 금액은 2.1.284+).
-- **cwd, `⎇` git, `❯` vim**: 작업 위치, 브랜치와 더티 상태 (`⌥` worktree 포함, 24자 초과 이름은 `…`로 축약, 열린 PR은 `#12 approved`처럼 배지로, GitLab MR은 `!12`), vim 모드(vim 모드가 켜진 동안만).
+- **cwd, `⎇` git**: 작업 위치, 브랜치와 더티 상태 (`⌥` worktree 포함, 24자 초과 이름은 `…`로 축약, 열린 PR은 `#12 approved`처럼 배지로, GitLab MR은 `!12`). vim 모드는 Claude Code 기본 `-- INSERT --` 표시에 맡깁니다.
 
 ## 설치
 
@@ -61,14 +61,11 @@ iwr -useb https://raw.githubusercontent.com/seungho-jeong/claude-code-statusline
     "type": "command",
     "command": "node ~/.claude/statusline.js",
     "padding": 0,
-    "hideVimModeIndicator": true,
     "refreshInterval": 30
   }
 }
 ```
 
-`hideVimModeIndicator`는 Claude Code가 자체 표시하는 `-- INSERT --` 문구를
-끕니다. 켜 두면 `❯` 세그먼트와 중복됩니다.
 `refreshInterval`은 30초마다 스크립트를 다시 실행해 메시지가 없어도 `5h`
 남은 시간이 줄어듭니다.
 
@@ -108,7 +105,7 @@ curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statuslin
 
 - **계정 정체성**은 `~/.claude.json`의 `oauthAccount`를 직접 읽습니다. CLI 호출을 거치지 않으므로 병렬 세션에서도 흔들리지 않습니다. 개인/팀은 파일에 `organizationType`과 `seatTier`가 있으면 그 값으로 판별하고(Claude Code 2.1.x), 없는 구버전 파일에서는 자동 생성 조직명 패턴으로 판별합니다.
 - **가볍게 동작합니다.** Node 런타임은 `JSON.parse`로 처리하고 `git`만 fork합니다. shell 런타임은 단일 jq 호출과 Unit Separator로 필드를 추출합니다. 두 런타임 모두 CWD별 5초 TTL 파일 캐시로 git 정보를 재사용하므로 30초 갱신마다 `git` fork는 한 번입니다.
-- **누락에 너그럽습니다.** `rate_limits`, `vim.mode`, `~/.claude.json`, `jq` 중 무엇이 없어도 해당 요소만 생략하고 나머지는 그대로 표시합니다.
+- **누락에 너그럽습니다.** `rate_limits`, `~/.claude.json`, `jq` 중 무엇이 없어도 해당 요소만 생략하고 나머지는 그대로 표시합니다.
 
 ## 테스트
 

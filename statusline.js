@@ -11,7 +11,7 @@
 //   Line 1: Filesystem  — cwd (dim prefix + bold basename)
 //   Line 2: Git         — ⌥ worktree(conditional) · ⎇ branch · ✓/± status
 //   Line 3: AI          — ✦ model · context bar pct · used/max · @ tenancy(conditional)
-//   Line 4: Resources   — $ cost · 5h bar pct (reset) · Week bar pct (reset) · ❯ vim mode
+//   Line 4: Resources   — $ cost · Spend?(bar pct) · 5h bar pct (reset) · Week bar pct (reset)
 // ============================================================================
 
 'use strict';
@@ -353,7 +353,7 @@ function renderLine3(model, effort, ctxPct, ctxUsed, ctxMax, cacheWarm, cacheHit
 }
 
 // ----------------------------------
-// Line 4 — cost · 5h · Week · vim mode
+// Line 4 — cost · Spend · 5h · Week
 // ----------------------------------
 function formatCost(cost) {
     const ci = toCents(cost);
@@ -383,7 +383,7 @@ function formatRemaining(resetEpoch) {
 }
 
 function renderLine4(cost, spendPct, spendReset, spendUsed, spendLimit,
-                     fivePct, fiveReset, weekPct, weekReset, vimMode) {
+                     fivePct, fiveReset, weekPct, weekReset) {
     const costPart = formatCost(cost);
 
     // Spend block — only behind a spend limit (Claude apps gateway, 2.1.251+).
@@ -439,10 +439,7 @@ function renderLine4(cost, spendPct, spendReset, spendUsed, spendLimit,
         weekRemainSeg = ` ${C.FG_SEP}(${C.FG_MUTED}${weekRemainStr}${C.RESET}${C.FG_SEP})${C.RESET}`;
     }
 
-    // CC omits `vim` entirely when vim mode is off; drop the segment then.
-    const vimSeg = vimMode ? `${SEP}❯  ${C.FG_MUTED}${vimMode}${C.RESET}` : '';
-
-    return `${costPart}${spendSeg}${SEP}5h ${fiveBar}  ${fiveColor}${fivePctStr}${C.RESET}${fiveRemainSeg}${SEP}Week ${weekBar}  ${weekColor}${weekPctStr}${C.RESET}${weekRemainSeg}${vimSeg}`;
+    return `${costPart}${spendSeg}${SEP}5h ${fiveBar}  ${fiveColor}${fivePctStr}${C.RESET}${fiveRemainSeg}${SEP}Week ${weekBar}  ${weekColor}${weekPctStr}${C.RESET}${weekRemainSeg}`;
 }
 
 // ----------------------------------
@@ -487,7 +484,6 @@ function extract(data) {
         prNumber:   data.pr?.number ?? '',
         prState:    data.pr?.review_state ?? '',
         prKind:     data.pr?.kind ?? '',
-        vimMode:    data.vim?.mode ?? '',
         wtName:     data.workspace?.git_worktree ?? '',
         effort:     data.effort?.level ?? '',
         cacheWarm:  data.prompt_cache?.warm ?? null,       // true/false, null → segment omitted
@@ -507,7 +503,7 @@ function main() {
         renderLine2(f.cwd, f.wtName) + prBadge(f.prNumber, f.prState, f.prKind) + '\n' +
         renderLine3(f.model, f.effort, f.ctxPct, f.ctxUsed, f.ctxMax, f.cacheWarm, f.cacheHit) + '\n' +
         renderLine4(f.cost, f.spendPct, f.spendReset, f.spendUsed, f.spendLimit,
-                    f.fivePct, f.fiveReset, f.weekPct, f.weekReset, f.vimMode) + '\n';
+                    f.fivePct, f.fiveReset, f.weekPct, f.weekReset) + '\n';
 
     process.stdout.write(out);
 }

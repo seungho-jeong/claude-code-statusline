@@ -1,6 +1,6 @@
 {
   "name": "claude-code-statusline",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Glanceable 4-line statusline for Claude Code.",
   "bin": {
     "claude-code-statusline": "statusline.js"

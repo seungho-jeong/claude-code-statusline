@@ -385,9 +385,10 @@ function renderLine4(cost, fivePct, fiveReset, weekPct, weekReset, vimMode) {
 function extract(data) {
     const cw = data.context_window ?? {};
     const inTok = Number(cw.total_input_tokens ?? 0) || 0;
-    const outTok = Number(cw.total_output_tokens ?? 0) || 0;
     const ctxMax = Number(cw.context_window_size ?? 200000) || 200000;
-    const ctxUsed = inTok + outTok;
+    // CC's used_percentage counts input only (input + cache_creation +
+    // cache_read = total_input_tokens); mirror that so bar and count agree.
+    const ctxUsed = inTok;
     const ctxPctRaw = cw.used_percentage;
     const ctxPct = Math.floor(
         ctxPctRaw === null || ctxPctRaw === undefined

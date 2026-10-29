@@ -120,10 +120,10 @@ IFS= read -r -d '' -t 1 INPUT
 jq_out=$(jq -r '[
     .model.display_name // "Claude",
     .workspace.current_dir // ".",
-    ((.context_window.total_input_tokens // 0) + (.context_window.total_output_tokens // 0)),
+    (.context_window.total_input_tokens // 0),
     (.context_window.context_window_size // 200000),
     ((.context_window.used_percentage // (
-        (((.context_window.total_input_tokens // 0) + (.context_window.total_output_tokens // 0)) * 100) /
+        ((.context_window.total_input_tokens // 0) * 100) /
         (.context_window.context_window_size // 200000)
     )) | floor),
     (.cost.total_cost_usd // 0),

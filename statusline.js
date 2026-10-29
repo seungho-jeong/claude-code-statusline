@@ -353,8 +353,25 @@ function formatRemaining(resetEpoch) {
     return `${Math.floor(diff / 60)}m`;
 }
 
-function renderLine4(cost, fivePct, fiveReset, weekPct, weekReset, vimMode) {
+function renderLine4(cost, spendPct, spendReset, spendUsed, spendLimit,
+                     fivePct, fiveReset, weekPct, weekReset, vimMode) {
     const costPart = formatCost(cost);
+
+    // Spend block — only behind a spend limit (Claude apps gateway, 2.1.251+).
+    // Dollar figures are optional even when the block is present.
+    let spendSeg = '';
+    if (spendPct !== '' && spendPct !== null && spendPct !== undefined) {
+        const parts = [];
+        if (spendUsed !== '' && spendLimit !== '') {
+            parts.push(`$${Math.round(Number(spendUsed))}/$${Math.round(Number(spendLimit))}`);
+        }
+        const spendRemain = formatRemaining(spendReset);
+        if (spendRemain !== '--') parts.push(spendRemain);
+        const paren = parts.length
+            ? ` ${C.FG_SEP}(${C.FG_MUTED}${parts.join(' · ')}${C.RESET}${C.FG_SEP})${C.RESET}`
+            : '';
+        spendSeg = `${SEP}Spend ${makeBar(spendPct)}  ${colorByPct(spendPct)}${pad3(spendPct)}%${C.RESET}${paren}`;
+    }
 
     // 5h block
     const fiveRemainStr = formatRemaining(fiveReset);
@@ -396,7 +413,7 @@ function renderLine4(cost, fivePct, fiveReset, weekPct, weekReset, vimMode) {
     // CC omits `vim` entirely when vim mode is off; drop the segment then.
     const vimSeg = vimMode ? `${SEP}❯  ${C.FG_MUTED}${vimMode}${C.RESET}` : '';
 
-    return `${costPart}${SEP}5h ${fiveBar}  ${fiveColor}${fivePctStr}${C.RESET}${fiveRemainSeg}${SEP}Week ${weekBar}  ${weekColor}${weekPctStr}${C.RESET}${weekRemainSeg}${vimSeg}`;
+    return `${costPart}${spendSeg}${SEP}5h ${fiveBar}  ${fiveColor}${fivePctStr}${C.RESET}${fiveRemainSeg}${SEP}Week ${weekBar}  ${weekColor}${weekPctStr}${C.RESET}${weekRemainSeg}${vimSeg}`;
 }
 
 // ----------------------------------
@@ -419,6 +436,7 @@ function extract(data) {
     const rl = data.rate_limits ?? {};
     const fh = rl.five_hour ?? {};
     const sd = rl.seven_day ?? {};
+    const sl = rl.spend_limit ?? {};
 
     const pctOrEmpty = (v) => (v === null || v === undefined) ? '' : Math.floor(Number(v));
 
@@ -433,6 +451,10 @@ function extract(data) {
         fivePct:    pctOrEmpty(fh.used_percentage),
         weekPct:    pctOrEmpty(sd.used_percentage),
         weekReset:  sd.resets_at ?? '',
+        spendPct:   pctOrEmpty(sl.used_percentage),
+        spendReset: sl.resets_at ?? '',
+        spendUsed:  sl.used_usd ?? '',
+        spendLimit: sl.limit_usd ?? '',
         vimMode:    data.vim?.mode ?? '',
         wtName:     data.workspace?.git_worktree ?? '',
         effort:     data.effort?.level ?? '',
@@ -452,7 +474,8 @@ function main() {
         renderLine1(f.cwd) + '\n' +
         renderLine2(f.cwd, f.wtName) + '\n' +
         renderLine3(f.model, f.effort, f.ctxPct, f.ctxUsed, f.ctxMax, f.cacheWarm, f.cacheHit) + '\n' +
-        renderLine4(f.cost, f.fivePct, f.fiveReset, f.weekPct, f.weekReset, f.vimMode) + '\n';
+        renderLine4(f.cost, f.spendPct, f.spendReset, f.spendUsed, f.spendLimit,
+                    f.fivePct, f.fiveReset, f.weekPct, f.weekReset, f.vimMode) + '\n';
 
     process.stdout.write(out);
 }

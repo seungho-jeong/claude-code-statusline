@@ -135,14 +135,18 @@ jq_out=$(jq -r '[
     (.workspace.git_worktree // ""),
     (.effort.level // ""),
     (.prompt_cache.warm | if . == null then "" else tostring end),
-    (.prompt_cache.hit_ratio | if . == null then "" else (. * 100 | floor) end)
+    (.prompt_cache.hit_ratio | if . == null then "" else (. * 100 | floor) end),
+    (.rate_limits.spend_limit.used_percentage | if . == null then "" else floor end),
+    (.rate_limits.spend_limit.resets_at // ""),
+    (.rate_limits.spend_limit.used_usd | if . == null then "" else round end),
+    (.rate_limits.spend_limit.limit_usd | if . == null then "" else round end)
 ] | map(tostring) | join("\u001f")' <<<"$INPUT" 2>/dev/null) \
-    || jq_out=$'Claude\x1f.\x1f0\x1f200000\x1f0\x1f0\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f'
+    || jq_out=$'Claude\x1f.\x1f0\x1f200000\x1f0\x1f0\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f\x1f'
 
 IFS=$'\x1f' read -r \
     MODEL CWD CTX_USED CTX_MAX CTX_PCT COST \
     FIVE_RESET FIVE_PCT WEEK_PCT WEEK_RESET VIM_MODE WT_NAME EFFORT \
-    CACHE_WARM CACHE_HIT <<<"$jq_out"
+    CACHE_WARM CACHE_HIT SPEND_PCT SPEND_RESET SPEND_USED SPEND_LIMIT <<<"$jq_out"
 
 # ----------------------------------
 # Line 1 — cwd (dim parent path + bold basename; "~" expansion)
@@ -391,6 +395,28 @@ render_line4() {
     local cost_part
     cost_part=$(format_cost "$COST")
 
+    # Spend block — only behind a spend limit (Claude apps gateway, 2.1.251+).
+    # Dollar figures are optional even when the block is present.
+    local spend_seg=""
+    if [ -n "$SPEND_PCT" ]; then
+        local spend_color spend_bar spend_remain spend_parts="" spend_paren=""
+        spend_color=$(color_by_pct "$SPEND_PCT")
+        spend_bar=$(make_bar "$SPEND_PCT")
+        if [ -n "$SPEND_USED" ] && [ -n "$SPEND_LIMIT" ]; then
+            spend_parts="\$${SPEND_USED}/\$${SPEND_LIMIT}"
+        fi
+        spend_remain=$(format_remaining "$SPEND_RESET")
+        if [ "$spend_remain" != "--" ]; then
+            spend_parts="${spend_parts:+${spend_parts} · }${spend_remain}"
+        fi
+        if [ -n "$spend_parts" ]; then
+            spend_paren=$(printf ' %s(%s%s%s%s)%s' \
+                "$FG_SEP" "$FG_MUTED" "$spend_parts" "$RESET" "$FG_SEP" "$RESET")
+        fi
+        spend_seg=$(printf '%sSpend %s  %s%3d%%%s%s' \
+            "$SEP" "$spend_bar" "$spend_color" "$SPEND_PCT" "$RESET" "$spend_paren")
+    fi
+
     # 5h block
     local five_color five_bar five_pct_str five_remain_str five_extra=""
     five_remain_str=$(format_remaining "$FIVE_RESET")
@@ -440,8 +466,8 @@ render_line4() {
         vim_seg=$(printf '%s❯  %s%s%s' "$SEP" "$FG_MUTED" "$VIM_MODE" "$RESET")
     fi
 
-    printf '%s%s5h %s  %s%s%s%s%sWeek %s  %s%s%s%s%s' \
-        "$cost_part" "$SEP" \
+    printf '%s%s%s5h %s  %s%s%s%s%sWeek %s  %s%s%s%s%s' \
+        "$cost_part" "$spend_seg" "$SEP" \
         "$five_bar" "$five_color" "$five_pct_str" "$RESET" "$five_remain_seg" "$SEP" \
         "$week_bar" "$week_color" "$week_pct_str" "$RESET" "$week_remain_seg" "$vim_seg"
 }

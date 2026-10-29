@@ -25,6 +25,7 @@ Instead of pausing work for `/usage`, `/context`, or `claude auth status`, just 
 - **`⚡` cache**: prompt-cache state (`warm` / `cold`) and hit ratio, once Claude Code reports it.
 - **`@` account**: `@ Name` for personal, `@ Name (OrgName)` for team — so you never lose track when switching between accounts.
 - **`$` cost**: cumulative for the session. Color shifts at $2 and $5, highlighted with `!` when exceeded.
+- **`Spend` limit**: usage bar, %, dollars spent / limit and time until reset. Shown only for seats behind a spend limit (Claude Code 2.1.251+; dollar figures 2.1.284+).
 - **cwd, `⎇` git, `❯` vim**: working directory, branch with dirty state (plus `⌥` worktree when applicable, names over 24 chars shortened with `…`), vim mode (only while vim mode is on).
 
 ## Install

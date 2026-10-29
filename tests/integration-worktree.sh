@@ -26,16 +26,12 @@ git -C "$REPO" worktree add -q "$TMP/$LONG" -b wt-branch
 
 strip_ansi() { sed $'s/\x1b\\[[0-9;]*m//g'; }
 
-# run <runner> <json> <outfile> → writes raw output to <outfile>
+# run <json> <outfile> → writes raw output to <outfile>
 run() {
-    local runner="$1" json="$2" out="$3" cmd rcache
-    case "$runner" in
-        sh) cmd="$ROOT/statusline.sh" ;;
-        js) cmd="node $ROOT/statusline.js" ;;
-    esac
+    local json="$1" out="$2" rcache
     rcache=$(mktemp -d)
     printf '%s\0' "$json" \
-        | HOME="$TMPHOME" XDG_RUNTIME_DIR="$rcache" TMPDIR="$rcache" $cmd > "$out"
+        | HOME="$TMPHOME" XDG_RUNTIME_DIR="$rcache" TMPDIR="$rcache" node "$ROOT/statusline.js" > "$out"
     rm -rf "$rcache"
 }
 line2() { strip_ansi < "$1" | sed -n 2p; }
@@ -43,20 +39,12 @@ line2() { strip_ansi < "$1" | sed -n 2p; }
 fails=0
 # check <label> <json> <expected-line2-prefix>
 check() {
-    local label="$1" json="$2" want="$3" l2_sh l2_js
-    run sh "$json" "$TMP/out.sh"; l2_sh=$(line2 "$TMP/out.sh")
-    run js "$json" "$TMP/out.js"; l2_js=$(line2 "$TMP/out.js")
-    case "$l2_sh" in
-        "$want"*) printf 'PASS [sh] %s\n' "$label" ;;
-        *) printf 'FAIL [sh] %s\n  want: %s*\n  got:  %s\n' "$label" "$want" "$l2_sh"; fails=$((fails + 1)) ;;
-    esac
+    local label="$1" json="$2" want="$3" l2_js
+    run "$json" "$TMP/out.js"; l2_js=$(line2 "$TMP/out.js")
     case "$l2_js" in
-        "$want"*) printf 'PASS [js] %s\n' "$label" ;;
-        *) printf 'FAIL [js] %s\n  want: %s*\n  got:  %s\n' "$label" "$want" "$l2_js"; fails=$((fails + 1)) ;;
+        "$want"*) printf 'PASS %s\n' "$label" ;;
+        *) printf 'FAIL %s\n  want: %s*\n  got:  %s\n' "$label" "$want" "$l2_js"; fails=$((fails + 1)) ;;
     esac
-    if ! cmp -s "$TMP/out.sh" "$TMP/out.js"; then
-        printf 'FAIL [sh≠js] %s: runner outputs differ\n' "$label"; fails=$((fails + 1))
-    fi
 }
 
 check "long name (CC field)" \
@@ -72,4 +60,4 @@ check "fallback (git-dir, no field)" \
     "⌥ wt:84994-8f92caf2-8d17-43…"
 
 [ "$fails" -eq 0 ] || exit 1
-printf 'PASS: worktree names are truncated to 22 chars + … (sh == js)\n'
+printf 'PASS: worktree names are truncated to 22 chars + …\n'

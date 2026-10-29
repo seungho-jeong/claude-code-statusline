@@ -11,7 +11,6 @@
   "license": "MIT",
   "scripts": {
     "test": "./tests/run.sh",
-    "test:js": "./tests/run.sh --runner js",
     "test:ansi": "./tests/run.sh --mode ansi"
   }
 }

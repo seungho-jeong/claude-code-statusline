@@ -33,9 +33,8 @@ Instead of pausing work for `/usage`, `/context`, or `claude auth status`, just 
 Requires Node ≥18 on PATH: `brew install node` (macOS), `winget install OpenJS.NodeJS.LTS` (Windows),
 or a package from [nodejs.org](https://nodejs.org). The installer stops with a clear error if it is missing or too old.
 
-`statusline.js` (Node ≥18) is the canonical runtime — cross-platform, zero npm
-dependencies. The legacy `statusline.sh` is kept as a reference implementation
-and will be phased out in a future release.
+`statusline.js` (Node ≥18) is the only runtime — cross-platform, zero npm
+dependencies.
 
 The installer creates timestamped backups (`*.bak.<YYYYMMDD-HHMMSS>`) of any
 pre-existing `~/.claude/statusline.{sh,js}` and `~/.claude/settings.json`
@@ -78,21 +77,11 @@ Windows Terminal + Git for Windows on Windows 10 1809+ is the supported
 combination (ConPTY required for ANSI colors). Legacy `cmd.exe` runs without
 crashing but ignores SGR escapes, so the output appears uncolored.
 
-### Reference / legacy: shell runner
-
-The original `statusline.sh` (bash + jq + coreutils) still ships in this repo
-for byte-by-byte regression comparison against the Node port. It is supported
-on macOS and Linux only and prints a deprecation warning on install:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statusline/main/install.sh | sh -s -- --runner sh
-```
-
 ### Migration (sh → js)
 
-The shell runner stays in the repo for now and is kept byte-identical to the
-Node runner by the snapshot tests, but new features land in both only as long
-as that remains cheap. No removal date is set. To switch an existing install:
+The legacy shell runner `statusline.sh` shipped through v0.2.0 and was removed
+in v0.3.0. If you installed with `--runner sh`, re-running the installer
+switches you to the Node runner:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statusline/main/install.sh | sh
@@ -121,25 +110,24 @@ Example: `CCSL_CTX_WARN=30 claude`
 ## How it works
 
 - **Account identity** is read directly from `oauthAccount` in `~/.claude.json`. No CLI call, so it stays stable across parallel sessions. Personal vs. team is decided from `organizationType` and `seatTier` when the file has them (Claude Code 2.1.x), falling back to the auto-generated organization-name pattern on older files.
-- **Lightweight by design.** The Node runner uses `JSON.parse` and only forks `git`. The shell runner extracts every field with a single `jq` call using Unit Separator framing. Both share a per-CWD git cache file with a 5-second TTL, so the 30-second refresh costs one `git` fork per tick.
-- **Forgiving of missing data.** If `rate_limits`, `~/.claude.json`, or `jq` is absent, only that element is omitted — everything else still renders.
+- **Lightweight by design.** `JSON.parse` for input and `git` as the only fork. A per-CWD git cache file with a 5-second TTL means the 30-second refresh costs one `git` fork per tick.
+- **Forgiving of missing data.** If `rate_limits`, `~/.claude.json`, or `git` is absent, only that element is omitted — everything else still renders.
 
 ## Tests
 
 ```sh
-./tests/run.sh                          # Snapshot diff (plain) for sh + js
+./tests/run.sh                          # Snapshot diff (plain)
 ./tests/run.sh --mode ansi              # Compare ANSI-preserved snapshots
-./tests/run.sh --runner js              # Run js only
-./tests/run.sh --update                 # Regenerate plain snapshots (from sh)
+./tests/run.sh --update                 # Regenerate plain snapshots
 ./tests/perf.sh                         # Cold-start gate: <80ms average
 ./tests/integration-no-git.sh           # Fallback when git is absent
 ./tests/integration-no-home.sh          # Fallback when HOME is unset / missing
 ./tests/integration-install-backup.sh   # install.sh backs up pre-existing assets
 ./tests/integration-install-settings.sh # install.sh writes the statusLine entry (fresh + merge)
-./tests/integration-worktree.sh         # ⌥ worktree name truncation, sh == js
-./tests/integration-pr-badge.sh         # PR / MR badge on Line 2, sh == js
+./tests/integration-worktree.sh         # ⌥ worktree name truncation
+./tests/integration-pr-badge.sh         # PR / MR badge on Line 2
 ./tests/integration-narrow.sh           # bar width follows COLUMNS unless CCSL_BAR_WIDTH is set
-./tests/integration-tenancy.sh          # @ personal/team from organizationType + seatTier, sh == js
+./tests/integration-tenancy.sh          # @ personal/team from organizationType + seatTier
 ```
 
 Tests run inside an isolated temp directory so your host's git / HOME / cache
@@ -147,8 +135,7 @@ state never leaks in.
 
 ## Dependencies
 
-- **statusline.js (canonical)**: Node ≥18. Zero npm dependencies. `git` is optional — without it, line 2 falls back to `(no git repo)`.
-- **statusline.sh (legacy)**: `jq`, `git`, plus macOS/Linux coreutils.
+- **statusline.js**: Node ≥18. Zero npm dependencies. `git` is optional — without it, line 2 falls back to `(no git repo)`.
 - **install.sh / install.ps1**: `curl` (or `Invoke-WebRequest` on Windows). `jq` optional — settings.json will simply not be auto-edited if absent.
 
 ## License

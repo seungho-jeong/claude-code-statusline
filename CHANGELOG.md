@@ -6,9 +6,12 @@
 
 ## [Unreleased]
 
-### 예정
-- 레거시 `statusline.sh` 런타임과 `install.sh --runner sh` 제거(breaking).
-  v0.2.0이 sh 런타임을 포함하는 마지막 릴리스입니다.
+### 제거
+- **Breaking:** 레거시 `statusline.sh` 런타임과 `install.sh --runner sh` /
+  `install.ps1 -Runner sh` 옵션. v0.2.0이 sh 런타임을 포함하는 마지막
+  릴리스입니다. `--runner sh`로 설치했던 환경은 설치 스크립트를 다시 실행하면
+  Node 런타임으로 전환됩니다. 스냅샷 기대값은 sh로 생성해 js가 바이트
+  일치를 통과한 것이라 그대로 둡니다.
 
 ## [0.2.0] - 2026-10-29
 

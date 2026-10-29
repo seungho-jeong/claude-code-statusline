@@ -2,8 +2,7 @@
 set -eu
 
 # Usage:
-#   install.sh                       # install statusline.js (Node, default)
-#   install.sh --runner sh           # install statusline.sh (legacy, deprecated)
+#   install.sh                       # install statusline.js (Node)
 #   install.sh --source <path>       # install from a local file instead of curl
 #   install.sh --dry-run             # backup + plan only; no download or settings edit
 #
@@ -11,18 +10,10 @@ set -eu
 # backed up to *.bak.<YYYYMMDD-HHMMSS> before any change. Backup paths are
 # printed on exit. Set HOME to redirect installation to an alternate prefix.
 
-RUNNER="js"
 SOURCE=""
 DRY_RUN=0
 while [ $# -gt 0 ]; do
     case "$1" in
-        --runner)
-            shift
-            case "${1:-}" in
-                sh|js) RUNNER="$1" ;;
-                *) printf 'error: --runner expects sh or js\n' >&2; exit 2 ;;
-            esac
-            ;;
         --source)
             shift
             SOURCE="${1:-}"
@@ -34,33 +25,17 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-if [ "$RUNNER" = "sh" ]; then
-    cat >&2 <<'WARN'
-warning: --runner sh is deprecated. The shell runner depends on jq and
-coreutils which break on Alpine, BusyBox, and Windows. The Node runner
-(default) is now the canonical implementation. See the README "Migration"
-section for the staged removal timeline.
-WARN
-fi
-
 REPO_RAW="https://raw.githubusercontent.com/seungho-jeong/claude-code-statusline/main"
 CLAUDE_DIR="$HOME/.claude"
 SETTINGS="$CLAUDE_DIR/settings.json"
 
-if [ "$RUNNER" = "js" ]; then
-    DEST="$CLAUDE_DIR/statusline.js"
-    SRC="statusline.js"
-    CMD="node $CLAUDE_DIR/statusline.js"
-    REQUIRED="curl node"
-else
-    DEST="$CLAUDE_DIR/statusline.sh"
-    SRC="statusline.sh"
-    CMD="$CLAUDE_DIR/statusline.sh"
-    REQUIRED="jq curl"
-fi
+DEST="$CLAUDE_DIR/statusline.js"
+SRC="statusline.js"
+CMD="node $CLAUDE_DIR/statusline.js"
+REQUIRED="curl node"
 
-# Node version gate (js mode only, when node is on PATH).
-if [ "$RUNNER" = "js" ] && command -v node >/dev/null 2>&1; then
+# Node version gate (when node is on PATH).
+if command -v node >/dev/null 2>&1; then
     NODE_MAJOR=$(node -e 'process.stdout.write(String(process.versions.node.split(".")[0]))' 2>/dev/null || echo 0)
     if [ "$NODE_MAJOR" -lt 18 ]; then
         printf 'error: node v18+ required (found v%s). install a newer node.\n' "$NODE_MAJOR" >&2
@@ -80,7 +55,8 @@ done
 mkdir -p "$CLAUDE_DIR"
 chmod 700 "$CLAUDE_DIR" 2>/dev/null || true
 
-# Timestamped backup of any pre-existing assets. Bail on first failure.
+# Timestamped backup of any pre-existing assets (including a legacy
+# statusline.sh from releases before 0.3.0). Bail on first failure.
 TS=$(date +%Y%m%d-%H%M%S)
 BACKUPS=""
 for f in "$CLAUDE_DIR/statusline.sh" "$CLAUDE_DIR/statusline.js" "$SETTINGS"; do
@@ -125,7 +101,7 @@ else
     printf '{"statusLine":{"type":"command","command":"%s","padding":0,"refreshInterval":30}}\n' "$CMD" > "$SETTINGS"
 fi
 
-printf 'installed (%s). restart Claude Code to apply.\n' "$RUNNER"
+printf 'installed. restart Claude Code to apply.\n'
 if [ -n "$BACKUPS" ]; then
     printf 'backups:\n%b' "$BACKUPS"
 fi

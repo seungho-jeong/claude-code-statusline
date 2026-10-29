@@ -1,8 +1,7 @@
 # Claude Code Statusline — Windows installer (PowerShell 5.1+).
 #
 # Usage:
-#   .\install.ps1                    # install statusline.js (Node, default)
-#   .\install.ps1 -Runner sh         # install statusline.sh (legacy, deprecated)
+#   .\install.ps1                    # install statusline.js (Node)
 #   .\install.ps1 -Source <path>     # install from a local file instead of HTTP
 #   .\install.ps1 -DryRun            # backup + plan only; no download or settings edit
 #
@@ -12,9 +11,6 @@
 
 [CmdletBinding()]
 param(
-    [ValidateSet("js", "sh")]
-    [string]$Runner = "js",
-
     [string]$Source = "",
 
     [switch]$DryRun
@@ -22,36 +18,22 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-if ($Runner -eq "sh") {
-    Write-Warning ("--Runner sh is deprecated. The shell runner depends on jq and " +
-        "coreutils which break on Windows. The Node runner is now canonical. See " +
-        "the README 'Migration' section for the staged removal timeline.")
-}
-
 $RepoRaw   = "https://raw.githubusercontent.com/seungho-jeong/claude-code-statusline/main"
 $ClaudeDir = Join-Path $env:USERPROFILE ".claude"
 $Settings  = Join-Path $ClaudeDir "settings.json"
 
-if ($Runner -eq "js") {
-    $Dest = Join-Path $ClaudeDir "statusline.js"
-    $Src  = "statusline.js"
-    $Cmd  = "node `"$Dest`""
-} else {
-    $Dest = Join-Path $ClaudeDir "statusline.sh"
-    $Src  = "statusline.sh"
-    $Cmd  = "`"$Dest`""
-}
+$Dest = Join-Path $ClaudeDir "statusline.js"
+$Src  = "statusline.js"
+$Cmd  = "node `"$Dest`""
 
-# Node version gate (js mode only).
-if ($Runner -eq "js") {
-    $node = Get-Command node -ErrorAction SilentlyContinue
-    if (-not $node) {
-        throw "node v18+ required but not found on PATH."
-    }
-    $version = (& node -e "process.stdout.write(String(process.versions.node.split('.')[0]))" 2>$null)
-    if ([int]$version -lt 18) {
-        throw "node v18+ required (found v$version)."
-    }
+# Node version gate.
+$node = Get-Command node -ErrorAction SilentlyContinue
+if (-not $node) {
+    throw "node v18+ required but not found on PATH."
+}
+$version = (& node -e "process.stdout.write(String(process.versions.node.split('.')[0]))" 2>$null)
+if ([int]$version -lt 18) {
+    throw "node v18+ required (found v$version)."
 }
 
 # Ensure ~/.claude exists.
@@ -59,7 +41,8 @@ if (-not (Test-Path $ClaudeDir)) {
     New-Item -ItemType Directory -Path $ClaudeDir -Force | Out-Null
 }
 
-# Timestamped backup of any pre-existing assets. Bail on first failure.
+# Timestamped backup of any pre-existing assets (including a legacy
+# statusline.sh from releases before 0.3.0). Bail on first failure.
 $ts = Get-Date -Format "yyyyMMdd-HHmmss"
 $backups = @()
 foreach ($f in @(
@@ -126,7 +109,7 @@ if (Test-Path $Settings) {
     $obj | ConvertTo-Json -Depth 10 | Set-Content -Path $Settings -Encoding UTF8
 }
 
-Write-Host "installed ($Runner). restart Claude Code to apply."
+Write-Host "installed. restart Claude Code to apply."
 if ($backups.Count -gt 0) {
     Write-Host "backups:"
     foreach ($b in $backups) { Write-Host "  $b" }

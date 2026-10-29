@@ -33,9 +33,8 @@
 Node ≥18이 PATH에 있어야 합니다: `brew install node`(macOS), `winget install OpenJS.NodeJS.LTS`(Windows),
 또는 [nodejs.org](https://nodejs.org)의 패키지. 없거나 버전이 낮으면 설치 스크립트가 오류로 멈춥니다.
 
-정식 런타임은 `statusline.js` (Node ≥18) 입니다. 크로스 플랫폼이고 npm 의존성이
-없습니다. 레거시 `statusline.sh`는 회귀 비교용 레퍼런스로 보존되며 향후 릴리스
-에서 제거될 예정입니다.
+런타임은 `statusline.js` (Node ≥18) 하나입니다. 크로스 플랫폼이고 npm 의존성이
+없습니다.
 
 설치 스크립트는 기존 `~/.claude/statusline.{sh,js}`와 `~/.claude/settings.json`을
 타임스탬프 백업(`*.bak.<YYYYMMDD-HHMMSS>`)으로 먼저 보존한 뒤 덮어쓰며, 완료
@@ -77,21 +76,11 @@ Windows 10 1809+ 환경의 Windows Terminal + Git for Windows 조합이 지원
 대상이며, ANSI 색상을 위해 ConPTY가 필요합니다. 구형 `cmd.exe`는 충돌 없이
 실행되지만 SGR escape를 무시하므로 출력이 색 없이 표시됩니다.
 
-### 레거시: shell 런타임
-
-원본 `statusline.sh` (bash + jq + coreutils)는 Node 포트와의 byte 단위 회귀
-비교를 위해 저장소에 보존됩니다. macOS / Linux 전용이며, 설치 시 deprecation
-경고가 출력됩니다:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statusline/main/install.sh | sh -s -- --runner sh
-```
-
 ### 마이그레이션 (sh → js)
 
-shell 런타임은 당분간 저장소에 남고 스냅샷 테스트로 Node 런타임과 바이트
-일치를 유지하지만, 새 기능은 그 비용이 작을 때만 양쪽에 들어갑니다. 제거
-시점은 정해지지 않았습니다. 기존 설치를 바꾸려면:
+레거시 shell 런타임 `statusline.sh`는 v0.2.0까지 포함됐고 v0.3.0에서 제거됐습니다.
+`--runner sh`로 설치했던 환경은 설치 스크립트를 다시 실행하면 Node 런타임으로
+전환됩니다:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statusline/main/install.sh | sh
@@ -120,33 +109,31 @@ Node 런타임으로 바꿉니다. 옛 스크립트는 지우지 않습니다.
 ## 동작 원리
 
 - **계정 정체성**은 `~/.claude.json`의 `oauthAccount`를 직접 읽습니다. CLI 호출을 거치지 않으므로 병렬 세션에서도 흔들리지 않습니다. 개인/팀은 파일에 `organizationType`과 `seatTier`가 있으면 그 값으로 판별하고(Claude Code 2.1.x), 없는 구버전 파일에서는 자동 생성 조직명 패턴으로 판별합니다.
-- **가볍게 동작합니다.** Node 런타임은 `JSON.parse`로 처리하고 `git`만 fork합니다. shell 런타임은 단일 jq 호출과 Unit Separator로 필드를 추출합니다. 두 런타임 모두 CWD별 5초 TTL 파일 캐시로 git 정보를 재사용하므로 30초 갱신마다 `git` fork는 한 번입니다.
-- **누락에 너그럽습니다.** `rate_limits`, `~/.claude.json`, `jq` 중 무엇이 없어도 해당 요소만 생략하고 나머지는 그대로 표시합니다.
+- **가볍게 동작합니다.** `JSON.parse`로 처리하고 `git`만 fork합니다. CWD별 5초 TTL 파일 캐시로 git 정보를 재사용하므로 30초 갱신마다 `git` fork는 한 번입니다.
+- **누락에 너그럽습니다.** `rate_limits`, `~/.claude.json`, `git` 중 무엇이 없어도 해당 요소만 생략하고 나머지는 그대로 표시합니다.
 
 ## 테스트
 
 ```sh
-./tests/run.sh                          # sh + js 스냅샷 diff (plain)
+./tests/run.sh                          # 스냅샷 diff (plain)
 ./tests/run.sh --mode ansi              # ANSI 포함 스냅샷 비교
-./tests/run.sh --runner js              # js 런타임만 실행
-./tests/run.sh --update                 # 스냅샷 재생성 (sh 기준)
+./tests/run.sh --update                 # 스냅샷 재생성
 ./tests/perf.sh                         # 콜드 스타트 가드: 평균 80ms 미만
 ./tests/integration-no-git.sh           # git 부재 시 폴백
 ./tests/integration-no-home.sh          # HOME 미설정/존재하지 않을 때 폴백
 ./tests/integration-install-backup.sh   # install.sh가 기존 자산을 백업하는지 검증
 ./tests/integration-install-settings.sh # install.sh가 statusLine 항목을 기록하는지 검증 (신규 + 병합)
-./tests/integration-worktree.sh         # ⌥ worktree 이름 축약, sh == js 일치
-./tests/integration-pr-badge.sh         # 2번째 줄 PR / MR 배지, sh == js 일치
+./tests/integration-worktree.sh         # ⌥ worktree 이름 축약
+./tests/integration-pr-badge.sh         # 2번째 줄 PR / MR 배지
 ./tests/integration-narrow.sh           # COLUMNS에 따른 bar 폭 자동 축소, CCSL_BAR_WIDTH 우선
-./tests/integration-tenancy.sh          # @ 개인/팀 판별(organizationType + seatTier), sh == js 일치
+./tests/integration-tenancy.sh          # @ 개인/팀 판별(organizationType + seatTier)
 ```
 
 호스트의 git / HOME / 캐시를 건드리지 않도록 임시 디렉토리에 격리되어 실행됩니다.
 
 ## 의존성
 
-- **statusline.js (정식)**: Node ≥18. npm 의존성 없음. `git`은 선택 — 없으면 line 2가 `(no git repo)`로 폴백.
-- **statusline.sh (레거시)**: `jq`, `git` + macOS/Linux 표준 coreutils.
+- **statusline.js**: Node ≥18. npm 의존성 없음. `git`은 선택 — 없으면 line 2가 `(no git repo)`로 폴백.
 - **install.sh / install.ps1**: `curl` (또는 Windows의 `Invoke-WebRequest`). `jq`는 선택 — 없으면 settings.json 자동 갱신만 생략됩니다.
 
 ## 라이선스

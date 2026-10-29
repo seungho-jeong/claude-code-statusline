@@ -5,3 +5,5 @@
 *~
 .preview*.ansi
 .idea/
+.claude/
+BACKLOG.md

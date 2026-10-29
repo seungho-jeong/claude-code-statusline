@@ -20,6 +20,10 @@ check() {
         printf 'FAIL [%s]: statusLine.command missing\n' "$label" >&2
         fails=$((fails + 1))
     fi
+    if ! jq -e '.statusLine.refreshInterval == 30' "$settings" >/dev/null 2>&1; then
+        printf 'FAIL [%s]: statusLine.refreshInterval is not 30\n' "$label" >&2
+        fails=$((fails + 1))
+    fi
 }
 
 # Case 1: no settings.json → installer creates it.
@@ -42,4 +46,4 @@ rm -rf "$TMPHOME1" "$TMPHOME2"
 if [ "$fails" -ne 0 ]; then
     exit 1
 fi
-printf 'PASS: install.sh writes statusLine with hideVimModeIndicator (fresh + merge)\n'
+printf 'PASS: install.sh writes statusLine with hideVimModeIndicator + refreshInterval (fresh + merge)\n'

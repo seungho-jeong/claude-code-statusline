@@ -115,14 +115,14 @@ mv "$tmp" "$DEST"
 if [ -f "$SETTINGS" ]; then
     if command -v jq >/dev/null 2>&1; then
         tmp=$(mktemp)
-        jq --arg cmd "$CMD" '.statusLine = {"type":"command","command":$cmd,"padding":0,"hideVimModeIndicator":true}' \
+        jq --arg cmd "$CMD" '.statusLine = {"type":"command","command":$cmd,"padding":0,"hideVimModeIndicator":true,"refreshInterval":30}' \
             "$SETTINGS" > "$tmp" && mv "$tmp" "$SETTINGS"
     else
         printf 'warning: jq not installed; settings.json was not updated.\n' >&2
-        printf 'add this manually:\n  "statusLine": {"type":"command","command":"%s","padding":0,"hideVimModeIndicator":true}\n' "$CMD" >&2
+        printf 'add this manually:\n  "statusLine": {"type":"command","command":"%s","padding":0,"hideVimModeIndicator":true,"refreshInterval":30}\n' "$CMD" >&2
     fi
 else
-    printf '{"statusLine":{"type":"command","command":"%s","padding":0,"hideVimModeIndicator":true}}\n' "$CMD" > "$SETTINGS"
+    printf '{"statusLine":{"type":"command","command":"%s","padding":0,"hideVimModeIndicator":true,"refreshInterval":30}}\n' "$CMD" > "$SETTINGS"
 fi
 
 printf 'installed (%s). restart Claude Code to apply.\n' "$RUNNER"

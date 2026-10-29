@@ -62,13 +62,16 @@ Place `statusline.js` at `~/.claude/statusline.js` (or
     "type": "command",
     "command": "node ~/.claude/statusline.js",
     "padding": 0,
-    "hideVimModeIndicator": true
+    "hideVimModeIndicator": true,
+    "refreshInterval": 30
   }
 }
 ```
 
 `hideVimModeIndicator` turns off Claude Code's built-in `-- INSERT --` text,
 which would otherwise duplicate the `❯` segment.
+`refreshInterval` re-runs the script every 30 seconds so the `5h` countdown
+keeps ticking between messages.
 
 On Windows, the command becomes `node %USERPROFILE%\\.claude\\statusline.js`.
 Windows Terminal + Git for Windows on Windows 10 1809+ is the supported
@@ -105,7 +108,7 @@ Example: `CCSL_CTX_WARN=30 claude`
 ## How it works
 
 - **Account identity** is read directly from `oauthAccount` in `~/.claude.json`. No CLI call, so it stays stable across parallel sessions. Auto-generated organization names are filtered with a regex to distinguish personal and team accounts automatically.
-- **Lightweight by design.** The Node runner uses `JSON.parse` and only forks `git`. The shell runner extracts every field with a single `jq` call using Unit Separator framing. Both share a per-CWD git cache file with a 5-second TTL.
+- **Lightweight by design.** The Node runner uses `JSON.parse` and only forks `git`. The shell runner extracts every field with a single `jq` call using Unit Separator framing. Both share a per-CWD git cache file with a 5-second TTL, so the 30-second refresh costs one `git` fork per tick.
 - **Forgiving of missing data.** If `rate_limits`, `vim.mode`, `~/.claude.json`, or `jq` is absent, only that element is omitted — everything else still renders.
 
 ## Tests

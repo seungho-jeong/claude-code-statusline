@@ -104,6 +104,7 @@ $line = [PSCustomObject]@{
     command              = $Cmd
     padding              = 0
     hideVimModeIndicator = $true
+    refreshInterval      = 30
 }
 
 if (Test-Path $Settings) {

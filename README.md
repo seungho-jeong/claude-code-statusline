@@ -59,10 +59,14 @@ Place `statusline.js` at `~/.claude/statusline.js` (or
   "statusLine": {
     "type": "command",
     "command": "node ~/.claude/statusline.js",
-    "padding": 0
+    "padding": 0,
+    "hideVimModeIndicator": true
   }
 }
 ```
+
+`hideVimModeIndicator` turns off Claude Code's built-in `-- INSERT --` text,
+which would otherwise duplicate the `❯` segment.
 
 On Windows, the command becomes `node %USERPROFILE%\\.claude\\statusline.js`.
 Windows Terminal + Git for Windows on Windows 10 1809+ is the supported
@@ -113,6 +117,7 @@ Example: `CCSL_CTX_WARN=30 claude`
 ./tests/integration-no-git.sh           # Fallback when git is absent
 ./tests/integration-no-home.sh          # Fallback when HOME is unset / missing
 ./tests/integration-install-backup.sh   # install.sh backs up pre-existing assets
+./tests/integration-install-settings.sh # install.sh writes the statusLine entry (fresh + merge)
 ```
 
 Tests run inside an isolated temp directory so your host's git / HOME / cache

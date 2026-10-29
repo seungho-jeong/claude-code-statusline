@@ -58,10 +58,14 @@ iwr -useb https://raw.githubusercontent.com/seungho-jeong/claude-code-statusline
   "statusLine": {
     "type": "command",
     "command": "node ~/.claude/statusline.js",
-    "padding": 0
+    "padding": 0,
+    "hideVimModeIndicator": true
   }
 }
 ```
+
+`hideVimModeIndicator`는 Claude Code가 자체 표시하는 `-- INSERT --` 문구를
+끕니다. 켜 두면 `❯` 세그먼트와 중복됩니다.
 
 Windows에서는 명령을 `node %USERPROFILE%\\.claude\\statusline.js`로 바꿉니다.
 Windows 10 1809+ 환경의 Windows Terminal + Git for Windows 조합이 지원
@@ -112,6 +116,7 @@ curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statuslin
 ./tests/integration-no-git.sh           # git 부재 시 폴백
 ./tests/integration-no-home.sh          # HOME 미설정/존재하지 않을 때 폴백
 ./tests/integration-install-backup.sh   # install.sh가 기존 자산을 백업하는지 검증
+./tests/integration-install-settings.sh # install.sh가 statusLine 항목을 기록하는지 검증 (신규 + 병합)
 ```
 
 호스트의 git / HOME / 캐시를 건드리지 않도록 임시 디렉토리에 격리되어 실행됩니다.

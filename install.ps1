@@ -100,9 +100,10 @@ try {
 # Update settings.json. ConvertFrom-Json + ConvertTo-Json round-trip preserves
 # unrelated keys; -Depth 10 covers nested hook/permission objects.
 $line = [PSCustomObject]@{
-    type    = "command"
-    command = $Cmd
-    padding = 0
+    type                 = "command"
+    command              = $Cmd
+    padding              = 0
+    hideVimModeIndicator = $true
 }
 
 if (Test-Path $Settings) {

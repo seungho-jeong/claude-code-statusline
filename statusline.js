@@ -104,6 +104,13 @@ function toCents(v) {
     return (parseInt(s, 10) || 0) * 100;
 }
 
+// Worktree names longer than this are cut to WT_MAX-2 chars + "…" so a
+// UUID-style name (orca, claude --worktree) does not overflow Line 2.
+const WT_MAX = 24;
+function truncWt(name) {
+    return name.length > WT_MAX ? name.slice(0, WT_MAX - 2) + '…' : name;
+}
+
 function pad3(n) {
     return String(n).padStart(3, ' ');
 }
@@ -236,13 +243,13 @@ function computeLine2(cwd, wtName) {
     // Worktree — prefer CC-provided field, fall back to git-dir path pattern
     let wtPart = '';
     if (wtName) {
-        wtPart = `⌥ ${C.FG_LAVENDER}wt:${wtName}${C.RESET}${SEP}`;
+        wtPart = `⌥ ${C.FG_LAVENDER}wt:${truncWt(wtName)}${C.RESET}${SEP}`;
     } else {
         const gitDir = gitSafe(cwd, ['rev-parse', '--git-dir']);
         if (gitDir && gitDir.includes('/.git/worktrees/')) {
             const wtRoot = gitSafe(cwd, ['rev-parse', '--show-toplevel']) || '';
             const fallback = wtRoot.split('/').pop() || '';
-            wtPart = `⌥ ${C.FG_LAVENDER}wt:${fallback}${C.RESET}${SEP}`;
+            wtPart = `⌥ ${C.FG_LAVENDER}wt:${truncWt(fallback)}${C.RESET}${SEP}`;
         }
     }
 

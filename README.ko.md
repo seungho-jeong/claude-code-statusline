@@ -24,7 +24,7 @@
 - **`✦` 컨텍스트**: 모델명, bar, %, 토큰 카운트(캐시 포함 입력 토큰 기준, Claude Code의 `used_percentage`와 동일). 50%와 80%에서 색이 바뀌고 90% 초과 시 `!`. 1M 이상은 `1.2M`로 축약합니다.
 - **`@` 계정**: 개인은 `@ Name`, 팀은 `@ Name (OrgName)`으로 표시해 여러 계정을 오갈 때 헷갈리지 않습니다.
 - **`$` 비용**: 세션 누적. $2와 $5에서 색이 바뀌고 초과 시 `!`로 강조합니다.
-- **cwd, `⎇` git, `❯` vim**: 작업 위치, 브랜치와 더티 상태 (`⌥` worktree 포함), vim 모드(vim 모드가 켜진 동안만).
+- **cwd, `⎇` git, `❯` vim**: 작업 위치, 브랜치와 더티 상태 (`⌥` worktree 포함, 24자 초과 이름은 `…`로 축약), vim 모드(vim 모드가 켜진 동안만).
 
 ## 설치
 
@@ -117,6 +117,7 @@ curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statuslin
 ./tests/integration-no-home.sh          # HOME 미설정/존재하지 않을 때 폴백
 ./tests/integration-install-backup.sh   # install.sh가 기존 자산을 백업하는지 검증
 ./tests/integration-install-settings.sh # install.sh가 statusLine 항목을 기록하는지 검증 (신규 + 병합)
+./tests/integration-worktree.sh         # ⌥ worktree 이름 축약, sh == js 일치
 ```
 
 호스트의 git / HOME / 캐시를 건드리지 않도록 임시 디렉토리에 격리되어 실행됩니다.

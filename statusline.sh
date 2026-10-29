@@ -168,6 +168,19 @@ render_line1() {
 _CACHE_DIR="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/claude-code-statusline-${UID:-$(id -u)}"
 _CACHE_TTL=5
 
+# Worktree names longer than this are cut to _WT_MAX-2 chars + "…" so a
+# UUID-style name (orca, claude --worktree) does not overflow Line 2.
+_WT_MAX=24
+_trunc_wt() {
+    # Store truncated "$1" in var named "$2".
+    local n="$1" out_var="$2"
+    if (( ${#n} > _WT_MAX )); then
+        printf -v "$out_var" '%s…' "${n:0:_WT_MAX-2}"
+    else
+        printf -v "$out_var" '%s' "$n"
+    fi
+}
+
 _render_line2_compute() {
     if ! git_safe -C "$CWD" rev-parse --git-dir &>/dev/null; then
         printf '%s(no git repo)%s' "$FG_DIM" "$RESET"
@@ -185,7 +198,9 @@ _render_line2_compute() {
     # stdin paths that predate this field.
     local wt_part=""
     if [ -n "$WT_NAME" ]; then
-        wt_part="⌥ ${FG_LAVENDER}wt:${WT_NAME}${RESET}${SEP}"
+        local wt_shown
+        _trunc_wt "$WT_NAME" wt_shown
+        wt_part="⌥ ${FG_LAVENDER}wt:${wt_shown}${RESET}${SEP}"
     else
         local git_dir
         git_dir=$(git_safe -C "$CWD" rev-parse --git-dir 2>/dev/null)
@@ -193,6 +208,7 @@ _render_line2_compute() {
             local wt_root wt_fallback
             wt_root=$(git_safe -C "$CWD" rev-parse --show-toplevel 2>/dev/null)
             wt_fallback="${wt_root##*/}"
+            _trunc_wt "$wt_fallback" wt_fallback
             wt_part="⌥ ${FG_LAVENDER}wt:${wt_fallback}${RESET}${SEP}"
         fi
     fi

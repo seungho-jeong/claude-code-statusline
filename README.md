@@ -24,7 +24,7 @@ Instead of pausing work for `/usage`, `/context`, or `claude auth status`, just 
 - **`✦` context**: model name, bar, %, token count (input tokens incl. cache, matching Claude Code's own `used_percentage`). Color shifts at 50% and 80%, `!` above 90%. Abbreviates to `1.2M` past 1M tokens.
 - **`@` account**: `@ Name` for personal, `@ Name (OrgName)` for team — so you never lose track when switching between accounts.
 - **`$` cost**: cumulative for the session. Color shifts at $2 and $5, highlighted with `!` when exceeded.
-- **cwd, `⎇` git, `❯` vim**: working directory, branch with dirty state (plus `⌥` worktree when applicable), vim mode (only while vim mode is on).
+- **cwd, `⎇` git, `❯` vim**: working directory, branch with dirty state (plus `⌥` worktree when applicable, names over 24 chars shortened with `…`), vim mode (only while vim mode is on).
 
 ## Install
 
@@ -118,6 +118,7 @@ Example: `CCSL_CTX_WARN=30 claude`
 ./tests/integration-no-home.sh          # Fallback when HOME is unset / missing
 ./tests/integration-install-backup.sh   # install.sh backs up pre-existing assets
 ./tests/integration-install-settings.sh # install.sh writes the statusLine entry (fresh + merge)
+./tests/integration-worktree.sh         # ⌥ worktree name truncation, sh == js
 ```
 
 Tests run inside an isolated temp directory so your host's git / HOME / cache

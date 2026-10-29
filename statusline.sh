@@ -131,10 +131,10 @@ jq_out=$(jq -r '[
     (.rate_limits.five_hour.used_percentage | if . == null then "" else floor end),
     (.rate_limits.seven_day.used_percentage | if . == null then "" else floor end),
     (.rate_limits.seven_day.resets_at // ""),
-    (.vim.mode // "NORMAL"),
+    (.vim.mode // ""),
     (.workspace.git_worktree // "")
 ] | map(tostring) | join("\u001f")' <<<"$INPUT" 2>/dev/null) \
-    || jq_out=$'Claude\x1f.\x1f0\x1f200000\x1f0\x1f0\x1f\x1f\x1f\x1f\x1fNORMAL\x1f'
+    || jq_out=$'Claude\x1f.\x1f0\x1f200000\x1f0\x1f0\x1f\x1f\x1f\x1f\x1f\x1f'
 
 IFS=$'\x1f' read -r \
     MODEL CWD CTX_USED CTX_MAX CTX_PCT COST \
@@ -396,11 +396,16 @@ render_line4() {
             "$FG_SEP" "$FG_MUTED" "$week_remain_str" "$RESET" "$FG_SEP" "$RESET")
     fi
 
-    printf '%s%s5h %s  %s%s%s%s%sWeek %s  %s%s%s%s%s❯  %s%s%s' \
+    # CC omits `vim` entirely when vim mode is off; drop the segment then.
+    local vim_seg=""
+    if [ -n "$VIM_MODE" ]; then
+        vim_seg=$(printf '%s❯  %s%s%s' "$SEP" "$FG_MUTED" "$VIM_MODE" "$RESET")
+    fi
+
+    printf '%s%s5h %s  %s%s%s%s%sWeek %s  %s%s%s%s%s' \
         "$cost_part" "$SEP" \
         "$five_bar" "$five_color" "$five_pct_str" "$RESET" "$five_remain_seg" "$SEP" \
-        "$week_bar" "$week_color" "$week_pct_str" "$RESET" "$week_remain_seg" "$SEP" \
-        "$FG_MUTED" "$VIM_MODE" "$RESET"
+        "$week_bar" "$week_color" "$week_pct_str" "$RESET" "$week_remain_seg" "$vim_seg"
 }
 
 # ----------------------------------

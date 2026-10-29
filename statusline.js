@@ -376,7 +376,10 @@ function renderLine4(cost, fivePct, fiveReset, weekPct, weekReset, vimMode) {
         weekRemainSeg = ` ${C.FG_SEP}(${C.FG_MUTED}${weekRemainStr}${C.RESET}${C.FG_SEP})${C.RESET}`;
     }
 
-    return `${costPart}${SEP}5h ${fiveBar}  ${fiveColor}${fivePctStr}${C.RESET}${fiveRemainSeg}${SEP}Week ${weekBar}  ${weekColor}${weekPctStr}${C.RESET}${weekRemainSeg}${SEP}❯  ${C.FG_MUTED}${vimMode}${C.RESET}`;
+    // CC omits `vim` entirely when vim mode is off; drop the segment then.
+    const vimSeg = vimMode ? `${SEP}❯  ${C.FG_MUTED}${vimMode}${C.RESET}` : '';
+
+    return `${costPart}${SEP}5h ${fiveBar}  ${fiveColor}${fivePctStr}${C.RESET}${fiveRemainSeg}${SEP}Week ${weekBar}  ${weekColor}${weekPctStr}${C.RESET}${weekRemainSeg}${vimSeg}`;
 }
 
 // ----------------------------------
@@ -413,7 +416,7 @@ function extract(data) {
         fivePct:    pctOrEmpty(fh.used_percentage),
         weekPct:    pctOrEmpty(sd.used_percentage),
         weekReset:  sd.resets_at ?? '',
-        vimMode:    data.vim?.mode ?? 'NORMAL',
+        vimMode:    data.vim?.mode ?? '',
         wtName:     data.workspace?.git_worktree ?? '',
     };
 }

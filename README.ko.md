@@ -30,6 +30,9 @@
 
 ## 설치
 
+Node ≥18이 PATH에 있어야 합니다: `brew install node`(macOS), `winget install OpenJS.NodeJS.LTS`(Windows),
+또는 [nodejs.org](https://nodejs.org)의 패키지. 없거나 버전이 낮으면 설치 스크립트가 오류로 멈춥니다.
+
 정식 런타임은 `statusline.js` (Node ≥18) 입니다. 크로스 플랫폼이고 npm 의존성이
 없습니다. 레거시 `statusline.sh`는 회귀 비교용 레퍼런스로 보존되며 향후 릴리스
 에서 제거될 예정입니다.
@@ -83,6 +86,19 @@ Windows 10 1809+ 환경의 Windows Terminal + Git for Windows 조합이 지원
 ```sh
 curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statusline/main/install.sh | sh -s -- --runner sh
 ```
+
+### 마이그레이션 (sh → js)
+
+shell 런타임은 당분간 저장소에 남고 스냅샷 테스트로 Node 런타임과 바이트
+일치를 유지하지만, 새 기능은 그 비용이 작을 때만 양쪽에 들어갑니다. 제거
+시점은 정해지지 않았습니다. 기존 설치를 바꾸려면:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statusline/main/install.sh | sh
+```
+
+설치 스크립트가 `~/.claude/statusline.sh`를 백업하고 `statusLine.command`를
+Node 런타임으로 바꿉니다. 옛 스크립트는 지우지 않습니다.
 
 ## 설정
 

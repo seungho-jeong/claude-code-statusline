@@ -30,6 +30,9 @@ Instead of pausing work for `/usage`, `/context`, or `claude auth status`, just 
 
 ## Install
 
+Requires Node ≥18 on PATH: `brew install node` (macOS), `winget install OpenJS.NodeJS.LTS` (Windows),
+or a package from [nodejs.org](https://nodejs.org). The installer stops with a clear error if it is missing or too old.
+
 `statusline.js` (Node ≥18) is the canonical runtime — cross-platform, zero npm
 dependencies. The legacy `statusline.sh` is kept as a reference implementation
 and will be phased out in a future release.
@@ -84,6 +87,19 @@ on macOS and Linux only and prints a deprecation warning on install:
 ```sh
 curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statusline/main/install.sh | sh -s -- --runner sh
 ```
+
+### Migration (sh → js)
+
+The shell runner stays in the repo for now and is kept byte-identical to the
+Node runner by the snapshot tests, but new features land in both only as long
+as that remains cheap. No removal date is set. To switch an existing install:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statusline/main/install.sh | sh
+```
+
+The installer backs up `~/.claude/statusline.sh` and rewrites `statusLine.command`
+to the Node runner. The old script is not deleted.
 
 ## Configuration
 

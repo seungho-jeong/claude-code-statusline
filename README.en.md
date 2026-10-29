@@ -1,4 +1,4 @@
-**English** | [한국어](README.ko.md)
+**English** | [한국어](README.md)
 
 # claude-code-statusline
 

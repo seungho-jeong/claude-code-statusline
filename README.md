@@ -91,7 +91,7 @@ Every threshold can be overridden via `CCSL_*` environment variables.
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `CCSL_BAR_WIDTH` | `10` | Bar cell count |
+| `CCSL_BAR_WIDTH` | `10` (`5` when `COLUMNS` < 100) | Bar cell count. Auto-shrinks on narrow terminals unless set explicitly |
 | `CCSL_CTX_WARN` | `50` | Context % yellow threshold |
 | `CCSL_CTX_CRIT` | `80` | Context % red threshold |
 | `CCSL_FIRE_THRESHOLD` | `90` | Context `!` threshold |
@@ -122,6 +122,7 @@ Example: `CCSL_CTX_WARN=30 claude`
 ./tests/integration-install-settings.sh # install.sh writes the statusLine entry (fresh + merge)
 ./tests/integration-worktree.sh         # ⌥ worktree name truncation, sh == js
 ./tests/integration-pr-badge.sh         # PR / MR badge on Line 2, sh == js
+./tests/integration-narrow.sh           # bar width follows COLUMNS unless CCSL_BAR_WIDTH is set
 ```
 
 Tests run inside an isolated temp directory so your host's git / HOME / cache

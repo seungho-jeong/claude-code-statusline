@@ -31,8 +31,15 @@ const numEnv = (k, d) => {
     return Number.isFinite(n) ? n : d;
 };
 
+// Bar width: CCSL_BAR_WIDTH wins; otherwise 5 cells when the terminal
+// (COLUMNS, passed by CC) is narrower than 100 columns, else 10.
+function defaultBarWidth() {
+    const cols = Number(process.env.COLUMNS);
+    return Number.isFinite(cols) && cols > 0 && cols < 100 ? 5 : 10;
+}
+
 const CFG = {
-    BAR_WIDTH:      numEnv('CCSL_BAR_WIDTH', 10),
+    BAR_WIDTH:      numEnv('CCSL_BAR_WIDTH', defaultBarWidth()),
     CTX_WARN:       numEnv('CCSL_CTX_WARN', 50),
     CTX_CRIT:       numEnv('CCSL_CTX_CRIT', 80),
     FIRE_THRESHOLD: numEnv('CCSL_FIRE_THRESHOLD', 90),

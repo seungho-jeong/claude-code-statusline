@@ -90,7 +90,7 @@ curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statuslin
 
 | 변수 | 기본값 | 의미 |
 |---|---|---|
-| `CCSL_BAR_WIDTH` | `10` | bar 셀 수 |
+| `CCSL_BAR_WIDTH` | `10` (`COLUMNS` < 100이면 `5`) | bar 셀 수. 명시하지 않으면 좁은 터미널에서 자동 축소 |
 | `CCSL_CTX_WARN` | `50` | 컨텍스트 % 노랑 임계 |
 | `CCSL_CTX_CRIT` | `80` | 컨텍스트 % 빨강 임계 |
 | `CCSL_FIRE_THRESHOLD` | `90` | 컨텍스트 `!` 임계 |
@@ -121,6 +121,7 @@ curl -fsSL https://raw.githubusercontent.com/seungho-jeong/claude-code-statuslin
 ./tests/integration-install-settings.sh # install.sh가 statusLine 항목을 기록하는지 검증 (신규 + 병합)
 ./tests/integration-worktree.sh         # ⌥ worktree 이름 축약, sh == js 일치
 ./tests/integration-pr-badge.sh         # 2번째 줄 PR / MR 배지, sh == js 일치
+./tests/integration-narrow.sh           # COLUMNS에 따른 bar 폭 자동 축소, CCSL_BAR_WIDTH 우선
 ```
 
 호스트의 git / HOME / 캐시를 건드리지 않도록 임시 디렉토리에 격리되어 실행됩니다.

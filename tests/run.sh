@@ -106,7 +106,7 @@ for runner in $RUNNERS; do
         # mode the dim prefix and bold basename are separated by SGR escapes,
         # so we fall back to per-segment substitution.
         actual=$(cd "$NOGIT" && printf '%s\0' "$input" \
-            | HOME="$TMPHOME" XDG_RUNTIME_DIR="$rcache" TMPDIR="$rcache" \
+            | HOME="$TMPHOME" XDG_RUNTIME_DIR="$rcache" TMPDIR="$rcache" COLUMNS=200 \
               $cmd \
             | maybe_strip_ansi \
             | sed -e "s|${NOGIT}|__NOGIT__|g" \

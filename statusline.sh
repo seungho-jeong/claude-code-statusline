@@ -27,7 +27,14 @@ fi
 # ----------------------------------
 # Every constant below accepts a CCSL_<NAME> env override, e.g.
 #   CCSL_CTX_WARN=30 CCSL_COST_CRIT=10.0 claude
-BAR_WIDTH="${CCSL_BAR_WIDTH:-10}"
+# Bar width: CCSL_BAR_WIDTH wins; otherwise 5 cells when the terminal
+# (COLUMNS, passed by CC) is narrower than 100 columns, else 10.
+if [[ "${COLUMNS:-}" =~ ^[0-9]+$ ]] && (( COLUMNS > 0 && COLUMNS < 100 )); then
+    _DEFAULT_BAR_WIDTH=5
+else
+    _DEFAULT_BAR_WIDTH=10
+fi
+BAR_WIDTH="${CCSL_BAR_WIDTH:-$_DEFAULT_BAR_WIDTH}"
 CTX_WARN="${CCSL_CTX_WARN:-50}"                  # % above which context turns yellow
 CTX_CRIT="${CCSL_CTX_CRIT:-80}"                  # % above which context turns red
 FIRE_THRESHOLD="${CCSL_FIRE_THRESHOLD:-90}"      # % above which ! appears on context

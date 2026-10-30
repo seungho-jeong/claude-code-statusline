@@ -6,12 +6,26 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-30
+
 ### 제거
 - **Breaking:** 레거시 `statusline.sh` 런타임과 `install.sh --runner sh` /
-  `install.ps1 -Runner sh` 옵션. v0.2.0이 sh 런타임을 포함하는 마지막
-  릴리스입니다. `--runner sh`로 설치했던 환경은 설치 스크립트를 다시 실행하면
-  Node 런타임으로 전환됩니다. 스냅샷 기대값은 sh로 생성해 js가 바이트
-  일치를 통과한 것이라 그대로 둡니다.
+  `install.ps1 -Runner sh` 옵션. `statusline.sh`는 처음 개발할 때 MVP로
+  만든 구현이고, Node 포트 `statusline.js`로 옮긴 뒤로는 역할이 끝나
+  제거합니다. v0.2.0이 sh 런타임을 포함하는 마지막 릴리스입니다.
+  `--runner sh`로 설치했던 환경은 설치 스크립트를 다시 실행하면 Node
+  런타임으로 전환됩니다.
+
+### 변경
+- README: 한국어 문장을 번역투 없이 다듬었습니다. Windows 안내(기존 콘솔에서
+  색은 나오지만 글리프가 네모로 깨짐, Windows Terminal 설치 방법)를 두 README
+  모두 설치 절 앞쪽에 두었습니다. Windows 10 22H2 실기기로 확인했습니다.
+  설치를 Claude Code에 맡기는 붙여 넣기용 프롬프트 소절을 추가했습니다.
+
+### 수정
+- `install.ps1`이 `settings.json`을 BOM 없는 UTF-8로 읽고 씁니다. PowerShell
+  5.1의 `Get-Content -Raw`가 BOM 없는 파일을 시스템 코드페이지(한국어 Windows는
+  cp949)로 읽어 한글 값이 깨지던 문제. PR #1(@Yeosangho)의 수정을 가져왔습니다.
 
 ## [0.2.0] - 2026-10-29
 
@@ -66,6 +80,7 @@ CLI에서 실제로 캡처한 페이로드로 검증했고, 두 런타임의 출
   HOME 없음 / 설치 백업 통합 테스트.
 - 영어·한국어 README.
 
-[Unreleased]: https://github.com/seungho-jeong/claude-code-statusline/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/seungho-jeong/claude-code-statusline/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/seungho-jeong/claude-code-statusline/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/seungho-jeong/claude-code-statusline/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/seungho-jeong/claude-code-statusline/releases/tag/v0.1.0

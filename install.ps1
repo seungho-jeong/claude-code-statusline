@@ -17,6 +17,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 $RepoRaw   = "https://raw.githubusercontent.com/seungho-jeong/claude-code-statusline/main"
 $ClaudeDir = Join-Path $env:USERPROFILE ".claude"
@@ -90,7 +91,10 @@ $line = [PSCustomObject]@{
 }
 
 if (Test-Path $Settings) {
-    $raw = Get-Content -Raw -Path $Settings
+    # Get-Content -Raw in PowerShell 5.1 reads BOM-less files with the ANSI
+    # code page (cp949 on Korean Windows). Claude Code writes settings.json
+    # as BOM-less UTF-8, so non-ASCII values would be corrupted.
+    $raw = [System.IO.File]::ReadAllText($Settings, $Utf8NoBom)
     if ([string]::IsNullOrWhiteSpace($raw)) {
         $obj = [PSCustomObject]@{}
     } else {
@@ -101,12 +105,12 @@ if (Test-Path $Settings) {
     } else {
         Add-Member -InputObject $obj -MemberType NoteProperty -Name "statusLine" -Value $line
     }
-    $tmpJson = New-TemporaryFile
-    $obj | ConvertTo-Json -Depth 10 | Set-Content -Path $tmpJson.FullName -Encoding UTF8
-    Move-Item -Path $tmpJson.FullName -Destination $Settings -Force
+    $tmpJson = [System.IO.Path]::GetTempFileName()
+    [System.IO.File]::WriteAllText($tmpJson, ($obj | ConvertTo-Json -Depth 10), $Utf8NoBom)
+    Move-Item -Path $tmpJson -Destination $Settings -Force
 } else {
     $obj = [PSCustomObject]@{ statusLine = $line }
-    $obj | ConvertTo-Json -Depth 10 | Set-Content -Path $Settings -Encoding UTF8
+    [System.IO.File]::WriteAllText($Settings, ($obj | ConvertTo-Json -Depth 10), $Utf8NoBom)
 }
 
 Write-Host "installed. restart Claude Code to apply."

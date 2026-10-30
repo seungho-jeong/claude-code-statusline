@@ -30,8 +30,30 @@ Instead of pausing work for `/usage`, `/context`, or `claude auth status`, just 
 
 ## Install
 
+### Paste into Claude Code
+
+To let Claude Code do the install, paste this as-is:
+
+```text
+Install https://github.com/seungho-jeong/claude-code-statusline for me.
+Read the Install section of its README, run the install script for my OS, and
+install Node 18+ first if it is missing. When done, show me the statusLine entry
+in ~/.claude/settings.json, clean up any files you downloaded, and remind me to
+restart Claude Code.
+```
+
+### Requirements
+
 Requires Node ≥18 on PATH: `brew install node` (macOS), `winget install OpenJS.NodeJS.LTS` (Windows),
 or a package from [nodejs.org](https://nodejs.org). The installer stops with a clear error if it is missing or too old.
+
+On Windows, the supported setup is **Windows Terminal** + Git for Windows on
+Windows 10 1809+. Legacy console hosts (the Windows PowerShell window, `cmd.exe`)
+do render colors, but have no font fallback, so glyphs like `⎇ ✦ ▰▱` show up as
+boxes, and they miscount the width of `·` and `⚡`, so the numbers after them
+overlap (Claude Code's own icons break too). Windows 10 does not ship Windows Terminal;
+install it with `winget install Microsoft.WindowsTerminal` and run Claude Code
+inside it.
 
 `statusline.js` (Node ≥18) is the only runtime — cross-platform, zero npm
 dependencies.
@@ -72,10 +94,7 @@ Place `statusline.js` at `~/.claude/statusline.js` (or
 `refreshInterval` re-runs the script every 30 seconds so the `5h` countdown
 keeps ticking between messages.
 
-On Windows, the command becomes `node %USERPROFILE%\\.claude\\statusline.js`.
-Windows Terminal + Git for Windows on Windows 10 1809+ is the supported
-combination (ConPTY required for ANSI colors). Legacy `cmd.exe` runs without
-crashing but ignores SGR escapes, so the output appears uncolored.
+On Windows, set `command` to `node %USERPROFILE%\\.claude\\statusline.js`.
 
 ### Migration (sh → js)
 
